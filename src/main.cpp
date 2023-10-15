@@ -1,5 +1,7 @@
 #include <ncurses.h>
+// #include <panel.h>
 #include <cstring>
+#include "filereader.h"
 
 using namespace std;
 
@@ -13,10 +15,12 @@ int main( void )
 	refresh();					// Uhhhhhh
 
 	// Create text window
+	// TODO: Change this to a pad
 	WINDOW * text_window = newwin(LINES, (int)(COLS * TWPER), 0, 0); 	// Da window
 	box(text_window, 0, 0);		// Box idk
 	char text_title[] = "Text";
 	mvwprintw(text_window, 0, (int)(COLS * TWPER / 2) - strlen(text_title) / 2, text_title); // Title
+	string contents = slurp ("book.txt"); 
 	wrefresh(text_window); 		// Show the box
 	
 	// Create tooltip window
