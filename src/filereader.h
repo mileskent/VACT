@@ -6,7 +6,30 @@
 
 using namespace std;
 
-string slurp (string file)
+void formatter (string & text, int wraplen)
+{
+	int a = 0;
+	char c;
+	while (a + wraplen < text.length())
+	{
+		a += wraplen;
+		char c = text.at(a);
+		if (c == ' ')
+		{
+			text[a] = '\n';
+		}
+		else
+		{
+			while (c != ' ')
+			{
+				c = text.at(--a);
+			}
+			text[a] = '\n';
+		}
+	}
+}
+
+string slurp (string file, int wraplen)
 {
 	ifstream ifs ("../res/" + file, ifstream::in);
 	string str, line;
@@ -18,5 +41,7 @@ string slurp (string file)
 		}
 		ifs.close();
 	}
+	formatter (str, wraplen);
 	return str;
 }
+
