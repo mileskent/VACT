@@ -3,7 +3,6 @@
 #include "filereader.h"
 #include "word.h"
 #include <vector>
-#include <ctype.h>
 
 using namespace std;
 
@@ -15,6 +14,11 @@ const double TWPER = 0.7;
 vector<string> blocks;
 int activeword = 0;
 int cx, cy;
+
+int iswordchar (char ch)
+{
+	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '-';
+}
 
 // TODO: Help Menu
 int help (void);
@@ -44,19 +48,46 @@ int print_words (void)
 		// e.g. ... I like pie. -> the period won't be in the word
 
 		string block = blocks.at(i);
-		// TODO: handle punctuation	
-		/*
-		char blockend = block.back();
-		string word;
-		if ( !isalpha( blockend ) )
+		// TODO: Handle punctuation	
+	
+		string word, start, end;
+		start = ""; end = " ";
+		int wordch1, wordchlast;
+		for (int i = 0; i < block.length(); i++)
 		{
-			word = block.substr(0, block.length() - 1);
+			if (iswordchar(block.at(i)))
+			{
+				word += block.at(i);
+			}
 		}
-		else
+
+		for (int i = 0; i < block.length(); i++)
 		{
-		*/
-			string word = block;
-		//}
+			if (iswordchar(block.at(i)))
+			{
+				wordch1 = i;
+				break;
+			}
+		}
+		start = block.substr(0, wordch1);
+
+		for (int i = block.length() - 1; i >= 0; i--)
+		{
+			if (iswordchar(block.at(i)))
+			{
+				wordchlast = i + 1;
+				break;
+			}
+		}
+		// Idk why this was causing coredump but it was so I wrapped it
+		// end = block.substr(wordchlast) + " ";
+		if (wordchlast >= 0 && wordchlast < block.length()) 
+		{
+			end = block.substr(wordchlast) + " ";
+		} 
+
+		// print nonalphanum start
+		wprintw (text_window, start.c_str());
 
 		// differentiate word if active word
 		if (i == activeword)
@@ -71,17 +102,9 @@ int print_words (void)
 			wprintw (text_window, word.c_str());
 		}
 		
-		/*	
-		if (word != block)
-		{
-			char punct[] = {blockend, '\0'}; 
-			wprintw (text_window, punct);
-		}
-		*/
-		
 
-
-		wprintw (text_window, " ");
+		// print nonalphanum end
+		wprintw (text_window, end.c_str());
 	}
 
 	box (text_box, 0, 0);		// Draw a box border for the window
