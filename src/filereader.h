@@ -1,47 +1,23 @@
-/* File path -> String */
-
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 
 using namespace std;
 
-void formatter (string & text, int wraplen)
-{
-	int a = 0;
-	char c;
-	while (a + wraplen < text.length())
-	{
-		a += wraplen;
-		char c = text.at(a);
-		if (c == ' ')
-		{
-			text[a] = '\n';
-		}
-		else
-		{
-			while (c != ' ')
-			{
-				c = text.at(--a);
-			}
-			text[a] = '\n';
-		}
-	}
-}
-
-string slurp (string file, int wraplen)
+vector<string> slurp (string file)
 {
 	ifstream ifs ("../res/" + file, ifstream::in);
-	string str, line;
+	vector<string> v;
+	string block;
 	if (ifs.is_open()) 
 	{
-		while (getline(ifs, line)) 
+		while (ifs >> block) 
 		{
-			str.append(line);
+			v.push_back (block);
 		}
 		ifs.close();
 	}
-	formatter (str, wraplen);
-	return str;
+	return v;
 }
 
