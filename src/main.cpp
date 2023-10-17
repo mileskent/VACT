@@ -1,6 +1,7 @@
 #include <ncurses.h>
 #include <cstring>
 #include "filereader.h"
+#include "word.h"
 #include <vector>
 
 using namespace std;
@@ -101,6 +102,8 @@ int main (void)
 	mvwprintw (tt_window, 0, (int)(COLS * (1 - TWPER) / 2) - strlen(tt_title) / 2, tt_title);
 	wrefresh (tt_window);
 
+	move (LINES - 2, 1); refresh ();
+
 
 // input
 	int inpch;
@@ -141,7 +144,7 @@ int main (void)
 				print_words();
 				break;
 		}
-		wmove (text_window, LINES, 1); wrefresh (text_window);
+		move (LINES - 2, 1); refresh ();
 	}
 
 
