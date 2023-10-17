@@ -11,6 +11,22 @@ WINDOW * tt_window;
 int first_word = 0; const int WORD_CAP = 200;
 const double TWPER = 0.7;
 vector<string> blocks;
+int activeword = 0;
+int cx, cy;
+
+// TODO: Help Menu
+int help (void);
+
+int fixori (void)
+{
+	if (activeword >= WORD_CAP + first_word) first_word = activeword;
+	else if (activeword < first_word)
+	{
+		first_word = activeword - WORD_CAP;
+		if (first_word < 0) first_word = 0;
+	}
+	return 0;
+}
 
 int print_words (void)
 {
@@ -20,8 +36,9 @@ int print_words (void)
 	{
 		if (i > blocks.size() - 1) break;
 
-		if (i % 2 == 0)
+		if (i == activeword)
 		{
+			getyx (text_window, cy, cx);
 			wattron(text_window, A_BOLD | A_BLINK);
 			wprintw (text_window, blocks.at(i).c_str());
 			wattroff(text_window, A_BOLD | A_BLINK);	
@@ -59,6 +76,12 @@ int main (void)
 	initscr();					// Start curses mode
 	cbreak();					// Line Buffering Off
 	keypad(stdscr, TRUE);		// Functions keys, etc
+	if(has_colors() == FALSE)
+	{ 
+		endwin();
+		cout << "Your terminal does not support color! D:" << endl;
+		return 1;
+	}
 	start_color();				// colorzzzzz
 	refresh();					// The documentation has this here so Im copying it
 
@@ -81,18 +104,40 @@ int main (void)
 
 // input
 	int inpch;
+	const int jumplen = 10;
 	while((inpch = wgetch(text_window)) != 'q')
 	{ 
 		switch(inpch)
 		{ 
-			case 'j':
-				first_word+=50;
-				if (first_word > blocks.size() - WORD_CAP) first_word = blocks.size() - WORD_CAP;
+			case 'h':
+				if (activeword >= 1)
+				{
+					activeword--;
+					fixori();
+				}
+				print_words();
+				break;
+			case 'l':
+				if (activeword < blocks.size() - 1)
+				{
+					activeword++;
+					fixori();
+				}
 				print_words();
 				break;
 			case 'k':
-				first_word-=50;
-				if (first_word < 0) first_word = 0;
+				activeword -= jumplen;
+				if (activeword < 0) activeword = 0;
+				fixori();
+				print_words();
+				break;
+			case 'j':
+				activeword += jumplen;
+				if (activeword >= blocks.size()) activeword = blocks.size() - 1;
+				fixori();
+				print_words();
+				break;
+			default:
 				print_words();
 				break;
 		}
