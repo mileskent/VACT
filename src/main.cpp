@@ -3,6 +3,7 @@
 #include "filereader.h"
 #include "word.h"
 #include <vector>
+#include <ctype.h>
 
 using namespace std;
 
@@ -37,17 +38,47 @@ int print_words (void)
 	{
 		if (i > blocks.size() - 1) break;
 
+		// asume that all punctuation is only one character long
+		// and at the end of the word
+		// e.g. (I realize abbreviations break w this)
+		// e.g. ... I like pie. -> the period won't be in the word
+
+		string block = blocks.at(i);
+		// TODO: handle punctuation	
+		/*
+		char blockend = block.back();
+		string word;
+		if ( !isalpha( blockend ) )
+		{
+			word = block.substr(0, block.length() - 1);
+		}
+		else
+		{
+		*/
+			string word = block;
+		//}
+
+		// differentiate word if active word
 		if (i == activeword)
 		{
 			getyx (text_window, cy, cx);
 			wattron(text_window, A_BOLD | A_BLINK);
-			wprintw (text_window, blocks.at(i).c_str());
+			wprintw (text_window, word.c_str());
 			wattroff(text_window, A_BOLD | A_BLINK);	
 		}
 		else 
 		{
-			wprintw (text_window, blocks.at(i).c_str());
+			wprintw (text_window, word.c_str());
 		}
+		
+		/*	
+		if (word != block)
+		{
+			char punct[] = {blockend, '\0'}; 
+			wprintw (text_window, punct);
+		}
+		*/
+		
 
 
 		wprintw (text_window, " ");
@@ -96,6 +127,7 @@ int main (void)
 	print_words ();
 	
 	// Create tooltip window
+	// TODO: Printw the current word in the tooltip window
 	tt_window = newwin (LINES, (int)(COLS * (1 - TWPER)), 0, (int)(COLS * TWPER));
 	box (tt_window, 0, 0);
 	char tt_title[] = "Tooltip";
