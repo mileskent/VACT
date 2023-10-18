@@ -10,7 +10,11 @@ WINDOW * text_box;
 WINDOW * text_window;
 WINDOW * tt_box;
 WINDOW * tt_window;
-int first_word = 0; const int WORD_CAP = 200;
+WINDOW * cmd_box;
+WINDOW * cmd_window;
+int first_word = 0; 
+int inpch = '\0'; int previnpch = '\0';
+const int WORD_CAP = 200; // TODO: Figure out a way to fit this to the window instead of hardcoding
 const double TWPER = 0.7;
 const double CWPER = 0.1;
 vector<string> blocks;
@@ -76,32 +80,48 @@ void dopunct (string block, string & start, string & word, string & end)
 
 
 }
+int refresh_cmd (void)
+{
+	
+	// werase (cmd_window);
+	wrefresh (cmd_window);
+	
+	return 0;
+}
 
 
 int refresh_tt (void)
 {
+	start_color();
+	init_pair(1, COLOR_RED, COLOR_BLACK);
 	// TODO: Add more than just the word
 	// tt_window
 	werase (tt_window);
-	/* TODO: Reimplement later (was causing issues)
-	box (tt_box, 0, 0); wrefresh (tt_box); */
+	box (tt_box, 0, 0); 
+	char tt_title[] = "Tooltip";	
+	mvwprintw (tt_box, 0, (int)(COLS * (1 - TWPER) / 2) - strlen(tt_title) / 2, tt_title); 
+	wrefresh (tt_box); 
 
 	string s, tt_word, e;
 	dopunct (blocks.at(activeword), s, tt_word, e); 
 	
 	tt_word = "Selected: \"" + tt_word + "\"";
-	wmove (tt_window, 1, 1);
+	wmove (tt_window, 0, 1);
 	wprintw (tt_window, tt_word.c_str());
-	wmove (tt_window, 2, 1);
+	wmove (tt_window, 1, 1);
 	if (1)
 	{
-		wprintw (tt_window, "This word is undefined.");
+		wprintw (tt_window, "This word is undefined.\n Add to dictionary?\n ");
+		attron (A_BLINK);
+		wprintw (tt_window, ":y");
+		attroff (A_BLINK);
+		wprintw (tt_window, "\t");
+		attron (A_BLINK);
+		wprintw (tt_window, ":n");
+		attroff (A_BLINK);
+		// TODO: Why not blinking??
 	}
 
-	wrefresh (tt_window);
-
-	char tt_title[] = "Tooltip";	
-	mvwprintw (tt_window, 0, (int)(COLS * (1 - TWPER) / 2) - strlen(tt_title) / 2, tt_title); 
 	wrefresh (tt_window);
 	
 	return 0;
@@ -189,26 +209,31 @@ int main (void)
 
 // init screen
 	// Create text window
-	text_box = newwin(LINES, (int)(COLS * TWPER), 0, 0); 	
-	text_window = newwin(LINES - 2, (int)(COLS * TWPER) - 2, 1, 1);	
+	text_box = newwin((int)(LINES * (1 - CWPER)), (int)(COLS * TWPER), 0, 0); 	
+	text_window = newwin((int)(LINES * (1 - CWPER)) - 2, (int)(COLS * TWPER) - 2, 1, 1);	
 	// int wrap = (int)(COLS * TWPER - 3); // we can do wrap later
 	
 
 	print_words ();
 	
 	// Create tooltip window
-	// TODO: Printw the current word in the tooltip window
 	tt_box = newwin (LINES, (int)(COLS * (1 - TWPER)), 0, (int)(COLS * TWPER));
-	tt_window = newwin (LINES, (int)(COLS * (1 - TWPER)) - 2, 0, (int)(COLS * TWPER) + 1);
+	tt_window = newwin (LINES - 2, (int)(COLS * (1 - TWPER)) - 2, 1, (int)(COLS * TWPER) + 1);
 
 	refresh_tt ();
+
+	// Create cmd window
+	cmd_box = newwin((int)(LINES * CWPER), (int)(COLS * TWPER), (int)(LINES * (1 - CWPER)), 0);
+	cmd_window = newwin((int)(LINES * CWPER) - 2, (int)(COLS * TWPER) - 2, (int)(LINES * (1 - CWPER)) + 1, 1);
+
+	box (cmd_box, 0, 0); wrefresh (cmd_box); 
+	refresh_cmd ();
+	
 	refresh();
 
 // input
-	int inpch, previnpch;
-	inpch = '\0'; previnpch = '\0';
 	const int jumplen = 10;
-	while(inpch = wgetch(text_window))
+	while(inpch = wgetch(cmd_window))
 	{ 
 		
 
@@ -245,6 +270,9 @@ int main (void)
 			case 'q':
 				if (previnpch == ':')
 				{
+					erase();
+					printw ("Execution terminated. Press any key to continue...");
+					getch();
 					endwin();
 					return 0;
 				}
@@ -257,12 +285,17 @@ int main (void)
 
 
 		refresh_tt ();
+
+		refresh_cmd ();
+
 		refresh ();
 	}
 
 
 // End exec
-	// getch();					// Wait for key to exit
-	endwin();					// End curses mode
+	erase();
+	printw ("Execution terminated. Press any key to continue...");
+	getch();
+	endwin(); // exit curse mode
 	return 0;
 }
