@@ -16,7 +16,6 @@ int first_word = 0;
 char inpch;
 const int WORD_CAP = 200; // TODO: Figure out a way to fit this to the window instead of hardcoding
 const double TWPER = 0.7;
-const double CWPER = 0.1;
 vector<string> blocks;
 vector<Word> runtimeWords;
 int activeword = 0;
@@ -82,6 +81,7 @@ void dopunct (string block, string & start, string & word, string & end)
 }
 int refresh_tt (void)
 {
+
 	start_color();
 	init_pair(1, COLOR_RED, COLOR_BLACK);
 	// TODO: Add more than just the word
@@ -110,6 +110,7 @@ int refresh_tt (void)
 	wrefresh (tt_window);
 	
 	return 0;
+
 }
 // TODO: Help Menu
 int help (void);
@@ -127,6 +128,7 @@ int fixori (void)
 
 int print_words (void)
 {
+
 	// We have to print word by word
 	wmove (text_window, 0, 0); wrefresh (text_window);
 	for (int i = first_word; i < first_word + WORD_CAP; i++)
@@ -255,10 +257,9 @@ int main (void)
 				break;
 			default:
 				print_words();
-				refresh_tt ();
 				break;
 		}
-
+		refresh_tt ();
 
 
 	}
