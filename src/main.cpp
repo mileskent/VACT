@@ -149,6 +149,15 @@ int fixori (void)
 	return 0;
 }
 
+int isdefinedword (string word)
+{
+	for (int i = 0; i < runtimeWords.size(); i++)
+	{
+		if (runtimeWords.at(i).getword() == word) return 1;
+	}
+	return 0;
+}
+
 int print_words (void)
 {
 
@@ -164,11 +173,15 @@ int print_words (void)
 
 				// print nonalphanum start
 		wprintw (text_window, start.c_str());
+		
+		if (!isdefinedword(word))
+		{
+			wattron (text_window, A_UNDERLINE);
+		}
 
 		// differentiate word if active word
 		if (i == activeword)
 		{
-			getyx (text_window, cy, cx);
 			wattron(text_window, A_BOLD | A_BLINK | A_ITALIC);
 			wprintw (text_window, word.c_str());
 			wattroff(text_window, A_BOLD | A_BLINK | A_ITALIC);	
@@ -178,6 +191,11 @@ int print_words (void)
 			wprintw (text_window, word.c_str());
 		}
 		
+		if (!isdefinedword(word))
+		{
+			wattroff (text_window, A_UNDERLINE);
+		}
+
 
 		// print nonalphanum end
 		wprintw (text_window, end.c_str());
@@ -290,7 +308,7 @@ int main (void)
 					string definition; 
 					int grammar;
 					
-					mvwprintw (tt_window, cy++ + 1, 1, "Definition: ");
+					mvwprintw (tt_window, 1, 1, "Definition: ");
 					nocbreak ();	
 					echo();
 					int ch = wgetch(tt_window);
@@ -305,14 +323,15 @@ int main (void)
 
 					// TODO: later, automate this based of the list in word.h
 					ch = 0;
-					mvwprintw (tt_window, cy++ + 1, 1, "1. Noun");
-					mvwprintw (tt_window, cy++ + 1, 1, "2. Verb");
-					mvwprintw (tt_window, cy++ + 1, 1, "3. Adverb");
-					mvwprintw (tt_window, cy++ + 1, 1, "4. Article");
-					mvwprintw (tt_window, cy++ + 1, 1, "5. Other");
+					wprintw (tt_window, " 1. Noun\n ");
+					wprintw (tt_window, "2. Verb\n ");
+					wprintw (tt_window, "3. Adverb\n ");
+					wprintw (tt_window, "4. Article\n ");
+					wprintw (tt_window, "5. Adjective\n ");
+					wprintw (tt_window, "6. Other\n ");
 					
 					ch = wgetch(tt_window) - '0'; // -'0' important; '0'-'9' != 0-9
-					while ( !(ch <= 5 && ch >= 1) )
+					while ( !(ch <= 6 && ch >= 1) )
 					{
 						ch = wgetch(tt_window) - '0';
 					}
@@ -332,11 +351,11 @@ int main (void)
 						}
 					}
 					if (dupes == 0)	runtimeWords.push_back(temp);
-
-					mvwprintw (tt_window, cy++ + 1, 1, "Added the following entry:");
-					mvwprintw (tt_window, cy++ + 1, 1, ("Word: " + word).c_str());
-					mvwprintw (tt_window, cy++ + 1, 1, ("Definition: " + definition).c_str());
-					mvwprintw (tt_window, cy++ + 1, 1, ("Grammatical Use: " + temp.getgrammar()).c_str());
+					werase (tt_window);
+					wprintw (tt_window, " Added the following entry:");
+					wprintw (tt_window, ("\n Word: " + word).c_str());
+					wprintw (tt_window, ("\n Definition: " + definition).c_str());
+					wprintw (tt_window, ("\n Grammatical Use: " + temp.getgrammar()).c_str());
 					
 
 
