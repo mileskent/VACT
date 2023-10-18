@@ -13,7 +13,7 @@ WINDOW * tt_window;
 WINDOW * cmd_box;
 WINDOW * cmd_window;
 int first_word = 0; 
-string inpstr = "";
+char inpch;
 const int WORD_CAP = 200; // TODO: Figure out a way to fit this to the window instead of hardcoding
 const double TWPER = 0.7;
 const double CWPER = 0.1;
@@ -80,14 +80,6 @@ void dopunct (string block, string & start, string & word, string & end)
 
 
 }
-int refresh_cmd (void)
-{
-	wprintw (cmd_window, inpstr.c_str());
-	wrefresh (cmd_window);	
-	return 0;
-}
-
-
 int refresh_tt (void)
 {
 	start_color();
@@ -110,14 +102,8 @@ int refresh_tt (void)
 	if (1)
 	{
 		wprintw (tt_window, "This word is undefined.\n Add to dictionary?\n ");
-		attron (A_BLINK);
-		wprintw (tt_window, ":y");
-		attroff (A_BLINK);
-		wprintw (tt_window, "\t");
-		attron (A_BLINK);
-		wprintw (tt_window, ":n");
-		attroff (A_BLINK);
-		// TODO: Why not blinking??
+		wprintw (tt_window, "y\tn");
+
 	}
 
 	wrefresh (tt_window);
@@ -205,8 +191,8 @@ int main (void)
 
 // init screen
 	// Create text window
-	text_box = newwin((int)(LINES * (1 - CWPER)), (int)(COLS * TWPER), 0, 0); 	
-	text_window = newwin((int)(LINES * (1 - CWPER)) - 2, (int)(COLS * TWPER) - 2, 1, 1);	
+	text_box = newwin((int)(LINES), (int)(COLS * TWPER), 0, 0); 	
+	text_window = newwin((int)(LINES) - 2, (int)(COLS * TWPER) - 2, 1, 1);	
 
 	print_words ();
 	
@@ -216,25 +202,11 @@ int main (void)
 
 	refresh_tt ();
 
-	// Create cmd window
-	cmd_box = newwin((int)(LINES * CWPER), (int)(COLS * TWPER), (int)(LINES * (1 - CWPER)), 0);
-	cmd_window = newwin((int)(LINES * CWPER) - 2, (int)(COLS * TWPER) - 2, (int)(LINES * (1 - CWPER)) + 1, 1);
-
-	// box (cmd_box, 0, 0); wrefresh (cmd_box); TODO: revert later
-	refresh_cmd ();
-	
 
 // input
 	const int jumplen = 10;
-	while(inpstr !=  ":q")
+	while ((inpch = wgetch(text_window)) != 'q')
 	{ 
-		
-		if (inpstr.length() > 0 && inpstr.back() == '\10') 
-		{
-			inpstr = ""; // enter last entry
-		}
-		char inpch = wgetch(text_window);
-		inpstr.append (string(1, inpch));
 		switch(inpch)
 		{ 
 			case 'h':
@@ -272,8 +244,6 @@ int main (void)
 
 
 		refresh_tt ();
-
-		refresh_cmd ();
 
 	}
 
