@@ -22,6 +22,19 @@ To execute the project cd into VACT/bin and run the following
 ./main
 ```
 
+## Hotkeys
+```
+While viewing document:
+q - quit
+h - left
+j - down
+k - up
+l - right
+Menus:
+y - yes
+n - no
+```
+
 
 
 
