@@ -12,6 +12,7 @@ WINDOW * tt_box;
 WINDOW * tt_window;
 int first_word = 0; const int WORD_CAP = 200;
 const double TWPER = 0.7;
+const double CWPER = 0.1;
 vector<string> blocks;
 vector<Word> runtimeWords;
 int activeword = 0;
@@ -19,7 +20,7 @@ int cx, cy;
 
 int iswordchar (char ch)
 {
-	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '-';
+	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '-' || (ch >= '0' && ch <= '9');
 }
 
 string tolower (string str)
@@ -122,7 +123,7 @@ int fixori (void)
 int print_words (void)
 {
 	// We have to print word by word
-	wmove (text_window, 1, 0); wrefresh (text_window);
+	wmove (text_window, 0, 0); wrefresh (text_window);
 	for (int i = first_word; i < first_word + WORD_CAP; i++)
 	{
 		if (i > blocks.size() - 1) break;
@@ -154,7 +155,7 @@ int print_words (void)
 
 	box (text_box, 0, 0);		// Draw a box border for the window
 	char text_title[] = "Text";
-	mvwprintw (text_window, 0, (int)(COLS * TWPER / 2) - strlen(text_title) / 2, text_title); // Title
+	mvwprintw (text_box, 0, (int)(COLS * TWPER / 2) - strlen(text_title) / 2, text_title); // Title
 	wrefresh (text_box);
 	wrefresh (text_window);
 	refresh ();
@@ -189,8 +190,9 @@ int main (void)
 // init screen
 	// Create text window
 	text_box = newwin(LINES, (int)(COLS * TWPER), 0, 0); 	
-	text_window = newwin(LINES, (int)(COLS * TWPER) - 2, 0, 1);	
+	text_window = newwin(LINES - 2, (int)(COLS * TWPER) - 2, 1, 1);	
 	// int wrap = (int)(COLS * TWPER - 3); // we can do wrap later
+	
 
 	print_words ();
 	
@@ -203,9 +205,10 @@ int main (void)
 	refresh();
 
 // input
-	int inpch;
+	int inpch, previnpch;
+	inpch = '\0'; previnpch = '\0';
 	const int jumplen = 10;
-	while((inpch = wgetch(text_window)) != 'q')
+	while(inpch = wgetch(text_window))
 	{ 
 		
 
@@ -239,10 +242,18 @@ int main (void)
 				fixori();
 				print_words();
 				break;
+			case 'q':
+				if (previnpch == ':')
+				{
+					endwin();
+					return 0;
+				}
+				break;
 			default:
 				print_words();
 				break;
 		}
+		previnpch = inpch;
 
 
 		refresh_tt ();
