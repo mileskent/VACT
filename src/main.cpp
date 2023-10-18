@@ -278,6 +278,7 @@ int main (void)
 				while ( (inpch = wgetch(tt_window)) != 'y' && inpch != 'n') { print_words(); }
 				if (inpch == 'y')
 				{
+					// TODO: later, add confirm choice later for each field
 					string word = getword (blocks.at(activeword));
 					string definition; 
 					int grammar;
@@ -294,12 +295,29 @@ int main (void)
 					}
 					cbreak();
 					noecho();
-					// TODO add the other variables
-					// write it to vector
-					// have diff behavior if already defined
+
+					// TODO: later, automate this based of the list in word.h
+					ch = 0;
+					mvwprintw (tt_window, cy++ + 1, 1, "1. Noun");
+					mvwprintw (tt_window, cy++ + 1, 1, "2. Verb");
+					mvwprintw (tt_window, cy++ + 1, 1, "3. Adverb");
+					mvwprintw (tt_window, cy++ + 1, 1, "4. Article");
+					mvwprintw (tt_window, cy++ + 1, 1, "5. Other");
 					
+					ch = wgetch(tt_window) - '0'; // -'0' important; '0'-'9' != 0-9
+					while ( !(ch <= 5 && ch >= 1) )
+					{
+						ch = wgetch(tt_window) - '0';
+					}
+					grammar = ch - 1; 
+					// now write it to vector -> this scen will have diff behavior if word already defined
+					mvwprintw (tt_window, cy++ + 1, 1, "Added the following entry:");
+					Word temp (word, definition, grammar);
+					mvwprintw (tt_window, cy++ + 1, 1, ("Word: " + word).c_str());
 					mvwprintw (tt_window, cy++ + 1, 1, ("Definition: " + definition).c_str());
+					mvwprintw (tt_window, cy++ + 1, 1, ("Grammatical Use: " + temp.getgrammar()).c_str());
 					
+
 
 					wgetch(tt_window); // Wait
 					print_words();

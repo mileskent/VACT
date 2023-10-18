@@ -27,7 +27,7 @@ class Word
 
 		string getgrammar ()
 		{
-			string g[] = {"noun", "verb", "adverb", "article"};
+			string g[] = {"noun", "verb", "adverb", "article, other"};
 			if (grammar < 0) return "Undefined";
 			else return g[grammar];
 		}
