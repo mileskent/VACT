@@ -13,12 +13,25 @@ WINDOW * tt_window;
 int first_word = 0; const int WORD_CAP = 200;
 const double TWPER = 0.7;
 vector<string> blocks;
+vector<Word> runtimeWords;
 int activeword = 0;
 int cx, cy;
 
 int iswordchar (char ch)
 {
 	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '-';
+}
+
+string tolower (string str)
+{
+	for (int i = 0; i < str.length(); i++)
+	{
+		if (str.at(i) >= 'A' && str.at(i) <= 'Z')
+		{
+			str[i] += 'a' - 'A';
+		}
+	}
+	return str;
 }
 
 void dopunct (string block, string & start, string & word, string & end)
@@ -67,21 +80,29 @@ void dopunct (string block, string & start, string & word, string & end)
 int refresh_tt (void)
 {
 	// TODO: Add more than just the word
-	// TODO: make it so it doesn't include punct
 	// tt_window
 	werase (tt_window);
+	/* TODO: Reimplement later (was causing issues)
+	box (tt_box, 0, 0); wrefresh (tt_box); */
 
 	string s, tt_word, e;
 	dopunct (blocks.at(activeword), s, tt_word, e); 
-	mvwprintw (tt_window, 1, (int)(COLS * (1 - TWPER) / 2) - tt_word.length() / 2, tt_word.c_str());
+	
+	tt_word = "Selected: \"" + tt_word + "\"";
+	wmove (tt_window, 1, 1);
+	wprintw (tt_window, tt_word.c_str());
+	wmove (tt_window, 2, 1);
+	if (1)
+	{
+		wprintw (tt_window, "This word is undefined.");
+	}
+
 	wrefresh (tt_window);
 
-	/* TODO: Reimplement later (was causing issues)
-	box (tt_box, 0, 0); wrefresh (tt_box);
 	char tt_title[] = "Tooltip";	
-	mvwprintw (tt_window, 0, (int)(COLS * (1 - TWPER) / 2) - strlen(tt_title) / 2, tt_title);
+	mvwprintw (tt_window, 0, (int)(COLS * (1 - TWPER) / 2) - strlen(tt_title) / 2, tt_title); 
 	wrefresh (tt_window);
-	*/
+	
 	return 0;
 }
 // TODO: Help Menu
