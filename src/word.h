@@ -1,4 +1,8 @@
+#ifndef WORD_H
+#define WORD_H
 #include <string>
+
+using namespace std;
 
 class Word
 {
@@ -36,8 +40,26 @@ class Word
 		{
 			return definition;
 		}
+
+		void setword (string w)
+		{
+			word = w;
+		}
+
+		void setdef (string def)
+		{
+			definition = def;
+		}
+
+		void setgrammar (int g)
+		{
+			grammar = g;
+		}
+
 	private:
 		string word;
 		string definition;
 		int grammar;
 };
+
+#endif

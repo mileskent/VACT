@@ -26,6 +26,37 @@ int iswordchar (char ch)
 	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '-' || (ch >= '0' && ch <= '9');
 }
 
+int pullwords()
+{
+        int id = 0;
+        string istring;
+        ifstream file("../res/dictionary/dict.vact");
+        if (file.is_open())
+        {
+                while (getline(file, istring))
+                {
+                        Word temp;
+                        unsigned long start = 0;
+                        unsigned long len = istring.find_first_of(';');
+                        temp.setword (istring.substr(start, len));
+
+                        start += len + 1;
+                        len = istring.substr(start).find_first_of(';');
+                        temp.setdef (istring.substr(start, len));
+
+
+                        start += len + 1;
+                        temp.setgrammar (stoi(istring.substr(start)));
+
+                        runtimeWords.push_back (temp);
+                        id++;
+                }
+                file.close();
+        }
+        else return 1;
+        return 0;
+}
+
 string tolower (string str)
 {
 	for (int i = 0; i < str.length(); i++)
@@ -216,7 +247,7 @@ int main (void)
 
 // init word stuff
 	blocks = slurp ("book.txt");
-
+	pullwords ();
 
 // init ncurses stuff
 	initscr();					// Start curses mode
