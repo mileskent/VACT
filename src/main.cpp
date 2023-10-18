@@ -99,13 +99,14 @@ int refresh_tt (void)
 	wmove (tt_window, 0, 1);
 	wprintw (tt_window, tt_word.c_str());
 	wmove (tt_window, 1, 1);
-	if (1)
+	
+	int defined = 0;
+	if (!defined)
 	{
-		wprintw (tt_window, "This word is undefined.\n Add to dictionary?\n ");
-		wprintw (tt_window, "y\tn");
-
+		wprintw (tt_window, "This word is undefined.");
 	}
-
+	wprintw (tt_window, "\n <Enter> to select.");
+	
 	wrefresh (tt_window);
 	
 	return 0;
@@ -237,13 +238,28 @@ int main (void)
 				fixori();
 				print_words();
 				break;
+			case '\n':
+				wprintw (tt_window, "\n Add to dictionary?\n ");
+				wprintw (tt_window, "y\tn");
+				wrefresh (tt_window);
+				while ( (inpch = wgetch(text_window)) != 'y' && inpch != 'n') { print_words(); }
+				if (inpch == 'y')
+				{
+					; // do_something
+				}
+				else if (inpch == 'n')
+				{
+					print_words();
+					refresh_tt ();
+				}
+				break;
 			default:
 				print_words();
+				refresh_tt ();
 				break;
 		}
 
 
-		refresh_tt ();
 
 	}
 
