@@ -7,7 +7,7 @@ using namespace std;
 
 vector<string> slurp (string file)
 {
-	ifstream ifs ("../res/" + file, ifstream::in);
+	ifstream ifs ("../res/files/" + file, ifstream::in);
 	vector<string> v;
 	string block;
 	if (ifs.is_open()) 
