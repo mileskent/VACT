@@ -6,6 +6,8 @@
 
 using namespace std;
 
+// TODO: Haven't done operator overloading
+
 WINDOW * text_box;
 WINDOW * text_window;
 WINDOW * tt_box;
