@@ -79,6 +79,14 @@ void dopunct (string block, string & start, string & word, string & end)
 
 
 }
+
+string getword (string block)
+{
+	string s, w, e;
+	dopunct (block, s, w, e);
+	return w;
+}
+
 int refresh_tt (void)
 {
 
@@ -169,7 +177,28 @@ int print_words (void)
 	return 0;
 }
 
+/*
+string getstring()
+{
+    string input;
 
+    nocbreak();
+    echo();
+
+    int ch = getch();
+
+    while ( ch != '\n' )
+    {
+        input.push_back( ch );
+        ch = getch();
+    }
+
+	cbreak();
+	noecho();
+
+    return input;
+}
+*/
 
 int main (void)
 {
@@ -190,6 +219,7 @@ int main (void)
 		return 1;
 	}
 	start_color();				// colorzzzzz
+	noecho ();
 
 
 // init screen
@@ -241,18 +271,43 @@ int main (void)
 				print_words();
 				break;
 			case '\n':
-				wprintw (tt_window, "\n Add to dictionary?\n ");
-				wprintw (tt_window, "y\tn");
+				getyx (tt_window, cy, cx);
+				mvwprintw (tt_window, cy++ + 1, 1, "Add to dictionary?");
+				mvwprintw (tt_window, cy++ + 1, 1, "y\tn");
 				wrefresh (tt_window);
-				while ( (inpch = wgetch(text_window)) != 'y' && inpch != 'n') { print_words(); }
+				while ( (inpch = wgetch(tt_window)) != 'y' && inpch != 'n') { print_words(); }
 				if (inpch == 'y')
 				{
-					; // do_something
+					string word = getword (blocks.at(activeword));
+					string definition; 
+					int grammar;
+					
+					mvwprintw (tt_window, cy++ + 1, 1, "Definition: ");
+					nocbreak ();	
+					echo();
+					int ch = wgetch(tt_window);
+					
+					while ( ch != '\n' )
+					{
+						definition.push_back( ch );
+						ch = wgetch(tt_window);
+					}
+					cbreak();
+					noecho();
+					// TODO add the other variables
+					// write it to vector
+					// have diff behavior if already defined
+					
+					mvwprintw (tt_window, cy++ + 1, 1, ("Definition: " + definition).c_str());
+					
+
+					wgetch(tt_window); // Wait
+					print_words();
+
 				}
 				else if (inpch == 'n')
 				{
 					print_words();
-					refresh_tt ();
 				}
 				break;
 			default:

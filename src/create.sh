@@ -1,1 +1,1 @@
-g++ -o ../bin/main main.cpp -lncurses; clear; ../bin/main
+sh build.sh; sh run.sh
