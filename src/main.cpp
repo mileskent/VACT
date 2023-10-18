@@ -8,6 +8,7 @@ using namespace std;
 
 WINDOW * text_box;
 WINDOW * text_window;
+WINDOW * tt_box;
 WINDOW * tt_window;
 int first_word = 0; const int WORD_CAP = 200;
 const double TWPER = 0.7;
@@ -20,6 +21,69 @@ int iswordchar (char ch)
 	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '-';
 }
 
+void dopunct (string block, string & start, string & word, string & end)
+{
+	// Handle punctuation	
+
+	start = ""; end = " ";
+	int wordch1, wordchlast;
+	for (int i = 0; i < block.length(); i++)
+	{
+		if (iswordchar(block.at(i)))
+		{
+			word += block.at(i);
+		}
+	}
+
+	for (int i = 0; i < block.length(); i++)
+	{
+		if (iswordchar(block.at(i)))
+		{
+			wordch1 = i;
+			break;
+		}
+	}
+	start = block.substr(0, wordch1);
+
+	for (int i = block.length() - 1; i >= 0; i--)
+	{
+		if (iswordchar(block.at(i)))
+		{
+			wordchlast = i + 1;
+			break;
+		}
+	}
+	// Idk why this was causing coredump but it was so I wrapped it
+	// end = block.substr(wordchlast) + " ";
+	if (wordchlast >= 0 && wordchlast < block.length()) 
+	{
+		end = block.substr(wordchlast) + " ";
+	} 
+
+
+}
+
+
+int refresh_tt (void)
+{
+	// TODO: Add more than just the word
+	// TODO: make it so it doesn't include punct
+	// tt_window
+	werase (tt_window);
+
+	string s, tt_word, e;
+	dopunct (blocks.at(activeword), s, tt_word, e); 
+	mvwprintw (tt_window, 1, (int)(COLS * (1 - TWPER) / 2) - tt_word.length() / 2, tt_word.c_str());
+	wrefresh (tt_window);
+
+	/* TODO: Reimplement later (was causing issues)
+	box (tt_box, 0, 0); wrefresh (tt_box);
+	char tt_title[] = "Tooltip";	
+	mvwprintw (tt_window, 0, (int)(COLS * (1 - TWPER) / 2) - strlen(tt_title) / 2, tt_title);
+	wrefresh (tt_window);
+	*/
+	return 0;
+}
 // TODO: Help Menu
 int help (void);
 
@@ -42,60 +106,20 @@ int print_words (void)
 	{
 		if (i > blocks.size() - 1) break;
 
-		// asume that all punctuation is only one character long
-		// and at the end of the word
-		// e.g. (I realize abbreviations break w this)
-		// e.g. ... I like pie. -> the period won't be in the word
-
 		string block = blocks.at(i);
-		// TODO: Handle punctuation	
-	
 		string word, start, end;
-		start = ""; end = " ";
-		int wordch1, wordchlast;
-		for (int i = 0; i < block.length(); i++)
-		{
-			if (iswordchar(block.at(i)))
-			{
-				word += block.at(i);
-			}
-		}
+		dopunct (block, start, word, end);
 
-		for (int i = 0; i < block.length(); i++)
-		{
-			if (iswordchar(block.at(i)))
-			{
-				wordch1 = i;
-				break;
-			}
-		}
-		start = block.substr(0, wordch1);
-
-		for (int i = block.length() - 1; i >= 0; i--)
-		{
-			if (iswordchar(block.at(i)))
-			{
-				wordchlast = i + 1;
-				break;
-			}
-		}
-		// Idk why this was causing coredump but it was so I wrapped it
-		// end = block.substr(wordchlast) + " ";
-		if (wordchlast >= 0 && wordchlast < block.length()) 
-		{
-			end = block.substr(wordchlast) + " ";
-		} 
-
-		// print nonalphanum start
+				// print nonalphanum start
 		wprintw (text_window, start.c_str());
 
 		// differentiate word if active word
 		if (i == activeword)
 		{
 			getyx (text_window, cy, cx);
-			wattron(text_window, A_BOLD | A_BLINK);
+			wattron(text_window, A_BOLD | A_BLINK | A_ITALIC);
 			wprintw (text_window, word.c_str());
-			wattroff(text_window, A_BOLD | A_BLINK);	
+			wattroff(text_window, A_BOLD | A_BLINK | A_ITALIC);	
 		}
 		else 
 		{
@@ -151,20 +175,19 @@ int main (void)
 	
 	// Create tooltip window
 	// TODO: Printw the current word in the tooltip window
-	tt_window = newwin (LINES, (int)(COLS * (1 - TWPER)), 0, (int)(COLS * TWPER));
-	box (tt_window, 0, 0);
-	char tt_title[] = "Tooltip";
-	mvwprintw (tt_window, 0, (int)(COLS * (1 - TWPER) / 2) - strlen(tt_title) / 2, tt_title);
-	wrefresh (tt_window);
+	tt_box = newwin (LINES, (int)(COLS * (1 - TWPER)), 0, (int)(COLS * TWPER));
+	tt_window = newwin (LINES, (int)(COLS * (1 - TWPER)) - 2, 0, (int)(COLS * TWPER) + 1);
 
-	move (LINES - 2, 1); refresh ();
-
+	refresh_tt ();
+	refresh();
 
 // input
 	int inpch;
 	const int jumplen = 10;
 	while((inpch = wgetch(text_window)) != 'q')
 	{ 
+		
+
 		switch(inpch)
 		{ 
 			case 'h':
@@ -199,7 +222,10 @@ int main (void)
 				print_words();
 				break;
 		}
-		move (LINES - 2, 1); refresh ();
+
+
+		refresh_tt ();
+		refresh ();
 	}
 
 
