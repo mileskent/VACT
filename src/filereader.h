@@ -18,6 +18,7 @@ vector<string> slurp (string file)
 		}
 		ifs.close();
 	}
+	else v = slurp ("book.txt");
 	return v;
 }
 

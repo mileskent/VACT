@@ -10,8 +10,7 @@ WINDOW * text_box;
 WINDOW * text_window;
 WINDOW * tt_box;
 WINDOW * tt_window;
-WINDOW * cmd_box;
-WINDOW * cmd_window;
+string bookname = "";
 int first_word = 0; 
 char inpch;
 const int WORD_CAP = 200; // TODO: Figure out a way to fit this to the window instead of hardcoding
@@ -47,7 +46,6 @@ int pushwords()
 	else return 1; 
 	return 0;
 }
-
 
 int pullwords()
 {
@@ -189,8 +187,6 @@ int refresh_tt (void)
 	return 0;
 
 }
-// TODO: Help Menu
-int help (void);
 
 int fixori (void)
 {
@@ -267,10 +263,10 @@ int print_words (void)
 int main (void)
 {
 
+// pick book
 
-// init word stuff
-	blocks = slurp ("book.txt");
-	pullwords ();
+	cout << "Enter filename of book: ";
+	cin >> bookname;
 
 // init ncurses stuff
 	initscr();					// Start curses mode
@@ -285,6 +281,11 @@ int main (void)
 	start_color();				// colorzzzzz
 	noecho ();
 
+
+
+// init word stuff
+	blocks = slurp (bookname);
+	pullwords ();
 
 // init screen
 	// Create text window
