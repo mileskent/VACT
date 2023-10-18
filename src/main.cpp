@@ -26,6 +26,29 @@ int iswordchar (char ch)
 	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '-' || (ch >= '0' && ch <= '9');
 }
 
+int pushwords()
+{
+	ofstream file;
+	// clear the file
+	file.open("../res/dictionary/dict.vact", ofstream::out | ofstream::trunc);
+	file.close();
+
+	file.open("../res/dictionary/dict.vact", ios::app); // append mode
+	if (file.is_open())
+	{
+		for (int id = 0; id < runtimeWords.size(); id++)
+		{
+			Word temp = runtimeWords.at(id);
+			cout << "Wrote " << temp.getword() << " to the dictionary." << endl;
+			file << temp.getword() << ";" << temp.getdefinition() << ";" << temp.getgrammar() << endl;
+		}
+		file.close();
+	}
+	else return 1; 
+	return 0;
+}
+
+
 int pullwords()
 {
         int id = 0;
@@ -46,7 +69,7 @@ int pullwords()
 
 
                         start += len + 1;
-                        temp.setgrammar (stoi(istring.substr(start)));
+                        temp.setgrammar (atoi(istring.substr(start).c_str()));
 
                         runtimeWords.push_back (temp);
                         id++;
@@ -412,6 +435,9 @@ int main (void)
 
 // End exec
 	erase();
+	printw ("Saving dictionary...\n");
+	pushwords ();
+	printw ("Dictionary saved.\n");
 	printw ("Execution terminated. Press any key to continue...");
 	getch();
 	endwin(); // exit curse mode
