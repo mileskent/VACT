@@ -90,9 +90,6 @@ string getword (string block)
 int refresh_tt (void)
 {
 
-	start_color();
-	init_pair(1, COLOR_RED, COLOR_BLACK);
-	// TODO: Add more than just the word
 	// tt_window
 	werase (tt_window);
 	box (tt_box, 0, 0); 
@@ -109,11 +106,29 @@ int refresh_tt (void)
 	wmove (tt_window, 1, 1);
 	
 	int defined = 0;
+	int tindex;
+	for (int word = 0; word < runtimeWords.size(); word++)
+	{
+		if (runtimeWords.at(word).getword() == blocks.at(activeword))
+		{
+			defined = 1;
+			tindex = word;
+			break;
+		}
+	}
+	getyx (tt_window, cy, cx);
 	if (!defined)
 	{
 		wprintw (tt_window, "This word is undefined.");
 	}
-	wprintw (tt_window, "\n <Enter> to select.");
+	else 
+	{
+		Word temp = runtimeWords.at(tindex);
+		mvwprintw (tt_window, cy++ + 1, 1, ("Word: " + temp.getword()).c_str());
+		mvwprintw (tt_window, cy++ + 1, 1, ("Definition: " + temp.getdefinition()).c_str());
+		mvwprintw (tt_window, cy++ + 1, 1, ("Grammatical Use: " + temp.getgrammar()).c_str());
+	}
+	wprintw (tt_window, "\n <Enter> to modify.");
 	
 	wrefresh (tt_window);
 	
@@ -177,29 +192,6 @@ int print_words (void)
 	return 0;
 }
 
-/*
-string getstring()
-{
-    string input;
-
-    nocbreak();
-    echo();
-
-    int ch = getch();
-
-    while ( ch != '\n' )
-    {
-        input.push_back( ch );
-        ch = getch();
-    }
-
-	cbreak();
-	noecho();
-
-    return input;
-}
-*/
-
 int main (void)
 {
 
@@ -238,6 +230,7 @@ int main (void)
 
 // input
 	const int jumplen = 10;
+	int d = 0;
 	while ((inpch = wgetch(text_window)) != 'q')
 	{ 
 		switch(inpch)
@@ -271,13 +264,27 @@ int main (void)
 				print_words();
 				break;
 			case '\n':
-				getyx (tt_window, cy, cx);
-				mvwprintw (tt_window, cy++ + 1, 1, "Add to dictionary?");
-				mvwprintw (tt_window, cy++ + 1, 1, "y\tn");
-				wrefresh (tt_window);
-				while ( (inpch = wgetch(tt_window)) != 'y' && inpch != 'n') { print_words(); }
+				for (int word = 0; word < runtimeWords.size(); word++)
+				{
+					if (runtimeWords.at(word).getword() == blocks.at(activeword))
+					{
+						d = 1;
+						break;
+					}
+				}
+				if (!d)
+				{
+					getyx (tt_window, cy, cx);
+					mvwprintw (tt_window, cy++ + 1, 1, "Add to dictionary?");
+					mvwprintw (tt_window, cy++ + 1, 1, "y\tn");
+					wrefresh (tt_window);
+					while ( (inpch = wgetch(tt_window)) != 'y' && inpch != 'n') { print_words(); }
+				}
+				else inpch = 'y';
+
 				if (inpch == 'y')
 				{
+					werase (tt_window);
 					// TODO: later, add confirm choice later for each field
 					string word = getword (blocks.at(activeword));
 					string definition; 
@@ -311,8 +318,22 @@ int main (void)
 					}
 					grammar = ch - 1; 
 					// now write it to vector -> this scen will have diff behavior if word already defined
-					mvwprintw (tt_window, cy++ + 1, 1, "Added the following entry:");
 					Word temp (word, definition, grammar);
+
+					// replace duplicates if applicable
+					int dupes = 0;
+					for (int word = 0; word < runtimeWords.size(); word++)
+					{
+						// TODO: later, ask user which they'd prefer to delete
+						if (runtimeWords.at(word).getword() == temp.getword())
+						{
+							runtimeWords.at(word) = temp;
+							dupes = 1;
+						}
+					}
+					if (dupes == 0)	runtimeWords.push_back(temp);
+
+					mvwprintw (tt_window, cy++ + 1, 1, "Added the following entry:");
 					mvwprintw (tt_window, cy++ + 1, 1, ("Word: " + word).c_str());
 					mvwprintw (tt_window, cy++ + 1, 1, ("Definition: " + definition).c_str());
 					mvwprintw (tt_window, cy++ + 1, 1, ("Grammatical Use: " + temp.getgrammar()).c_str());
@@ -327,6 +348,7 @@ int main (void)
 				{
 					print_words();
 				}
+
 				break;
 			default:
 				print_words();
