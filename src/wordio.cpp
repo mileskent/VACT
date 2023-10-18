@@ -18,6 +18,10 @@ int main (void)
 	{
 		cout << "Word: " << runtimeWords.at(i).getword() << " Def: " << runtimeWords.at(i).getdefinition() << " G: " << runtimeWords.at(i).getgrammar() << endl;
 	}
+	cout << "Adding word\n";
+	runtimeWords.push_back (Word("million", "1,000,000", 0));
+	pushwords();
+	cout << "Pushed words\n";
 	return 0;
 }
 
@@ -51,29 +55,25 @@ int pullwords()
 	else return 1;
 	return 0;
 }
-/*
+
 int pushwords()
 {
 	ofstream file;
 	// clear the file
-	file.open("bookings.tbkr", ofstream::out | ofstream::trunc);
+	file.open("../res/dictionary/dict.vact", ofstream::out | ofstream::trunc);
 	file.close();
-	file.open("bookings.tbkr", ios::app); // append mode
+
+	file.open("../res/dictionary/dict.vact", ios::app); // append mode
 	if (file.is_open())
 	{
-	for (int id = 0; id < MAX_BOOKINGS; id++)
-	{
-	  if(bookingNum[id].name.empty()) break;
-	  else 
-	  {
-		// cout << "Wrote " << bookingNum[id].name << "'s booking to the file" << endl;
-		file << bookingNum[id].name << ";" << bookingNum[id].origin << ";" 
-		  << bookingNum[id].destination << ";" << bookingNum[id].date << endl;
-	  }
-	}
-	file.close();
+		for (int id = 0; id < runtimeWords.size(); id++)
+		{
+			Word temp = runtimeWords.at(id);
+			cout << "Wrote " << temp.getword() << " to the dictionary." << endl;
+			file << temp.getword() << ";" << temp.getdefinition() << ";" << temp.getgrammar() << endl;
+		}
+		file.close();
 	}
 	else return 1; 
 	return 0;
 }
-*/
