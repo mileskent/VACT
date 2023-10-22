@@ -1,8 +1,9 @@
 #include <ncurses.h>
 #include <cstring>
+#include <vector>
+#include <algorithm>
 #include "filereader.hpp"
 #include "word.hpp"
-#include <vector>
 
 using namespace std;
 
@@ -29,13 +30,14 @@ int cx, cy;
 int iswordchar (char ch);
 int pushwords ();
 int pullwords ();
-string tolower (string str);
 void dopunct (string block, string & start, string & word, string & end);
-string getword (string block);
 int refresh_tt (void);
 int fixori (void);
 int isdefinedword (string word);
 int print_words (void);
+bool vechas (vector<string> vec, string str);
+string getword (string block);
+string tolower (string str);
 
 int main (void)
 {
@@ -43,8 +45,8 @@ int main (void)
 // init ncurses stuff
 	initscr();					// Start curses mode
 	cbreak();					// Line Buffering Off
-	keypad(stdscr, TRUE);		// Functions keys, etc
-	if(has_colors() == FALSE)
+	keypad(stdscr, true);		// Functions keys, etc
+	if(has_colors() == false)
 	{ 
 		endwin();
 		cout << "Your terminal does not support color! D:" << endl;
@@ -54,16 +56,55 @@ int main (void)
 	noecho (); // hide input
 
 // get text	
-	echo ();
-	printw ("Enter the name of the file you want.\n");
-	inpch = getch(); 
-	while ( inpch != '\n' )
+	vector<string> fileoptions = gettexts();
+	if (fileoptions.size() > 0)
 	{
-		bookname.push_back (inpch);
-		inpch = getch();
+		echo ();
+		while ( !vechas(fileoptions, bookname) )
+		{
+			bookname = "";
+			printw ("Enter the name of the file you want.\n");
+			for (string file : fileoptions)
+			{
+				printw ((" > " + file + "\n").c_str());
+			}
+			inpch = getch(); 
+			while ( inpch != '\n' )
+			{
+				if ( (inpch == KEY_BACKSPACE || inpch == 7 || inpch == 8) && bookname.length() > 0) // backspace; my machine detects as ascii 7 but it should be 8... 
+				{
+					// write over the original character that was there
+					getyx (stdscr, cy, cx);
+					printw (" ");
+					move (cy, cx);
+					
+					// actually affect the string
+					bookname.pop_back();
+				}
+				else // everything else
+				{
+					bookname.push_back (inpch);
+				}
+				inpch = getch();
+			}
+			refresh (); // can still see the text even when I don't call this for some reason; here for safety
+			clear();
+
+			if ( !vechas(fileoptions, bookname) ) 
+			{
+				printw ( ("You entered \"" + bookname + "\". File does not exist. Please try again.\n").c_str() );
+			}
+		}
+		noecho ();
 	}
-	refresh (); // can still see the text even when I don't call this for some reason; here for safety
-	noecho ();
+	else
+	{
+		printw ("Error. No available texts. Ending execution now.\n");
+		refresh();
+		getch();
+		endwin(); 
+		return 1;
+	}
 	
 // init word stuff
 	blocks = slurp (bookname);
@@ -231,6 +272,15 @@ int main (void)
 int iswordchar (char ch)
 {
 	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '-' || (ch >= '0' && ch <= '9');
+}
+
+bool vechas (vector<string> vec, string str)
+{
+	for (int i = 0; i < vec.size(); i++)
+	{
+		if (vec.at(i) == str) return true;
+	}
+	return false;
 }
 
 int pushwords()
