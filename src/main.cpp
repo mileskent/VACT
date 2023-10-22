@@ -7,11 +7,10 @@
 
 using namespace std;
 
-// TODO: Fix txt select
-// TODO: Operator Overloading
+// TODO: Add familiarity in UI
+// TODO: Operator Overloading ++ -- for words famil
 // TODO: Structs
 // TODO: Algo for Word Cap
-// TODO: Add familiarity in UI
 
 WINDOW * text_box;
 WINDOW * text_window;
