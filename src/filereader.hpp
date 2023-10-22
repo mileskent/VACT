@@ -1,3 +1,6 @@
+#ifndef FILEREADER_HPP
+#define FILEREADER_HPP
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -18,7 +21,8 @@ vector<string> slurp (string file)
 		}
 		ifs.close();
 	}
-	else v = slurp ("book.txt");
+	else v = slurp ("default.txt");
 	return v;
 }
 
+#endif

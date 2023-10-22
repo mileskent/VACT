@@ -1,12 +1,16 @@
 #include <ncurses.h>
 #include <cstring>
-#include "filereader.h"
-#include "word.h"
+#include "filereader.hpp"
+#include "word.hpp"
 #include <vector>
 
 using namespace std;
 
-// TODO: Haven't done operator overloading
+// TODO: Fix txt select
+// TODO: Operator Overloading
+// TODO: Structs
+// TODO: Algo for Word Cap
+// TODO: Add familiarity in UI
 
 WINDOW * text_box;
 WINDOW * text_window;
@@ -15,12 +19,214 @@ WINDOW * tt_window;
 string bookname = "";
 int first_word = 0; 
 char inpch;
-const int WORD_CAP = 200; // TODO: Figure out a way to fit this to the window instead of hardcoding
+const int WORD_CAP = 200; 
 const double TWPER = 0.7;
 vector<string> blocks;
 vector<Word> runtimeWords;
 int activeword = 0;
 int cx, cy;
+
+int iswordchar (char ch);
+int pushwords ();
+int pullwords ();
+string tolower (string str);
+void dopunct (string block, string & start, string & word, string & end);
+string getword (string block);
+int refresh_tt (void);
+int fixori (void);
+int isdefinedword (string word);
+int print_words (void);
+
+int main (void)
+{
+
+// init ncurses stuff
+	initscr();					// Start curses mode
+	cbreak();					// Line Buffering Off
+	keypad(stdscr, TRUE);		// Functions keys, etc
+	if(has_colors() == FALSE)
+	{ 
+		endwin();
+		cout << "Your terminal does not support color! D:" << endl;
+		return 1;
+	}
+	start_color();				// color
+	noecho (); // hide input
+
+// get text	
+	echo ();
+	printw ("Enter the name of the file you want.\n");
+	inpch = getch(); 
+	while ( inpch != '\n' )
+	{
+		bookname.push_back (inpch);
+		inpch = getch();
+	}
+	refresh (); // can still see the text even when I don't call this for some reason; here for safety
+	noecho ();
+	
+// init word stuff
+	blocks = slurp (bookname);
+	pullwords ();
+
+// init screen
+	// Create text window
+	text_box = newwin((int)(LINES), (int)(COLS * TWPER), 0, 0); 	
+	text_window = newwin((int)(LINES) - 2, (int)(COLS * TWPER) - 2, 1, 1);	
+
+	print_words ();
+	
+	// Create tooltip window
+	tt_box = newwin (LINES, (int)(COLS * (1 - TWPER)), 0, (int)(COLS * TWPER));
+	tt_window = newwin (LINES - 2, (int)(COLS * (1 - TWPER)) - 2, 1, (int)(COLS * TWPER) + 1);
+
+	refresh_tt ();
+
+
+// input
+	const int jumplen = 10;
+	int d = 0;
+	while ((inpch = wgetch(text_window)) != 'q')
+	{ 
+		switch(inpch)
+		{ 
+			case 'h':
+				if (activeword >= 1)
+				{
+					activeword--;
+					fixori();
+				}
+				print_words();
+				break;
+			case 'l':
+				if (activeword < blocks.size() - 1)
+				{
+					activeword++;
+					fixori();
+				}
+				print_words();
+				break;
+			case 'k':
+				activeword -= jumplen;
+				if (activeword < 0) activeword = 0;
+				fixori();
+				print_words();
+				break;
+			case 'j':
+				activeword += jumplen;
+				if (activeword >= blocks.size()) activeword = blocks.size() - 1;
+				fixori();
+				print_words();
+				break;
+			case '\n':
+				for (int word = 0; word < runtimeWords.size(); word++)
+				{
+					if (runtimeWords.at(word).getword() == blocks.at(activeword))
+					{
+						d = 1;
+						break;
+					}
+				}
+				if (!d)
+				{
+					getyx (tt_window, cy, cx);
+					mvwprintw (tt_window, cy++ + 1, 1, "Add to dictionary?");
+					mvwprintw (tt_window, cy++ + 1, 1, "y\tn");
+					wrefresh (tt_window);
+					while ( (inpch = wgetch(tt_window)) != 'y' && inpch != 'n') { print_words(); }
+				}
+				else inpch = 'y';
+
+				if (inpch == 'y')
+				{
+					werase (tt_window);
+					// TODO: later, add confirm choice later for each field
+					string word = getword (blocks.at(activeword));
+					string definition; 
+					int grammar;
+					
+					mvwprintw (tt_window, 1, 1, "Definition: ");
+					nocbreak ();	
+					echo();
+					int ch = wgetch(tt_window);
+					
+					while ( ch != '\n' )
+					{
+						definition.push_back( ch );
+						ch = wgetch(tt_window);
+					}
+					cbreak();
+					noecho();
+
+					// TODO: later, automate this based of the list in word.h
+					ch = 0;
+					wprintw (tt_window, " 1. Noun\n ");
+					wprintw (tt_window, "2. Verb\n ");
+					wprintw (tt_window, "3. Adverb\n ");
+					wprintw (tt_window, "4. Article\n ");
+					wprintw (tt_window, "5. Adjective\n ");
+					wprintw (tt_window, "6. Other\n ");
+					
+					ch = wgetch(tt_window) - '0'; // -'0' important; '0'-'9' != 0-9
+					while ( !(ch <= 6 && ch >= 1) )
+					{
+						ch = wgetch(tt_window) - '0';
+					}
+					grammar = ch - 1; 
+					// now write it to vector -> this scen will have diff behavior if word already defined
+					Word temp (word, definition, grammar);
+
+					// replace duplicates if applicable
+					int dupes = 0;
+					for (int word = 0; word < runtimeWords.size(); word++)
+					{
+						// TODO: later, ask user which they'd prefer to delete
+						if (runtimeWords.at(word).getword() == temp.getword())
+						{
+							runtimeWords.at(word) = temp;
+							dupes = 1;
+						}
+					}
+					if (dupes == 0)	runtimeWords.push_back(temp);
+					werase (tt_window);
+					wprintw (tt_window, " Added the following entry:");
+					wprintw (tt_window, ("\n Word: " + word).c_str());
+					wprintw (tt_window, ("\n Definition: " + definition).c_str());
+					wprintw (tt_window, ("\n Grammatical Use: " + temp.getgrammar()).c_str());
+					
+
+
+					wgetch(tt_window); // Wait
+					print_words();
+
+				}
+				else if (inpch == 'n')
+				{
+					print_words();
+				}
+
+				break;
+			default:
+				print_words();
+				break;
+		}
+		refresh_tt ();
+
+
+	}
+
+
+// End exec
+	clear ();
+	printw ("Saving dictionary...\n");
+	pushwords ();
+	printw ("Dictionary saved.\n");
+	printw ("Execution terminated. Press any key to continue...");
+	refresh ();
+	getch();
+	endwin(); // exit curse mode
+	return 0;
+}
 
 int iswordchar (char ch)
 {
@@ -262,187 +468,3 @@ int print_words (void)
 	return 0;
 }
 
-int main (void)
-{
-
-// pick book
-
-	cout << "Enter filename of book: ";
-	cin >> bookname;
-
-// init ncurses stuff
-	initscr();					// Start curses mode
-	cbreak();					// Line Buffering Off
-	keypad(stdscr, TRUE);		// Functions keys, etc
-	if(has_colors() == FALSE)
-	{ 
-		endwin();
-		cout << "Your terminal does not support color! D:" << endl;
-		return 1;
-	}
-	start_color();				// colorzzzzz
-	noecho ();
-
-
-
-// init word stuff
-	blocks = slurp (bookname);
-	pullwords ();
-
-// init screen
-	// Create text window
-	text_box = newwin((int)(LINES), (int)(COLS * TWPER), 0, 0); 	
-	text_window = newwin((int)(LINES) - 2, (int)(COLS * TWPER) - 2, 1, 1);	
-
-	print_words ();
-	
-	// Create tooltip window
-	tt_box = newwin (LINES, (int)(COLS * (1 - TWPER)), 0, (int)(COLS * TWPER));
-	tt_window = newwin (LINES - 2, (int)(COLS * (1 - TWPER)) - 2, 1, (int)(COLS * TWPER) + 1);
-
-	refresh_tt ();
-
-
-// input
-	const int jumplen = 10;
-	int d = 0;
-	while ((inpch = wgetch(text_window)) != 'q')
-	{ 
-		switch(inpch)
-		{ 
-			case 'h':
-				if (activeword >= 1)
-				{
-					activeword--;
-					fixori();
-				}
-				print_words();
-				break;
-			case 'l':
-				if (activeword < blocks.size() - 1)
-				{
-					activeword++;
-					fixori();
-				}
-				print_words();
-				break;
-			case 'k':
-				activeword -= jumplen;
-				if (activeword < 0) activeword = 0;
-				fixori();
-				print_words();
-				break;
-			case 'j':
-				activeword += jumplen;
-				if (activeword >= blocks.size()) activeword = blocks.size() - 1;
-				fixori();
-				print_words();
-				break;
-			case '\n':
-				for (int word = 0; word < runtimeWords.size(); word++)
-				{
-					if (runtimeWords.at(word).getword() == blocks.at(activeword))
-					{
-						d = 1;
-						break;
-					}
-				}
-				if (!d)
-				{
-					getyx (tt_window, cy, cx);
-					mvwprintw (tt_window, cy++ + 1, 1, "Add to dictionary?");
-					mvwprintw (tt_window, cy++ + 1, 1, "y\tn");
-					wrefresh (tt_window);
-					while ( (inpch = wgetch(tt_window)) != 'y' && inpch != 'n') { print_words(); }
-				}
-				else inpch = 'y';
-
-				if (inpch == 'y')
-				{
-					werase (tt_window);
-					// TODO: later, add confirm choice later for each field
-					string word = getword (blocks.at(activeword));
-					string definition; 
-					int grammar;
-					
-					mvwprintw (tt_window, 1, 1, "Definition: ");
-					nocbreak ();	
-					echo();
-					int ch = wgetch(tt_window);
-					
-					while ( ch != '\n' )
-					{
-						definition.push_back( ch );
-						ch = wgetch(tt_window);
-					}
-					cbreak();
-					noecho();
-
-					// TODO: later, automate this based of the list in word.h
-					ch = 0;
-					wprintw (tt_window, " 1. Noun\n ");
-					wprintw (tt_window, "2. Verb\n ");
-					wprintw (tt_window, "3. Adverb\n ");
-					wprintw (tt_window, "4. Article\n ");
-					wprintw (tt_window, "5. Adjective\n ");
-					wprintw (tt_window, "6. Other\n ");
-					
-					ch = wgetch(tt_window) - '0'; // -'0' important; '0'-'9' != 0-9
-					while ( !(ch <= 6 && ch >= 1) )
-					{
-						ch = wgetch(tt_window) - '0';
-					}
-					grammar = ch - 1; 
-					// now write it to vector -> this scen will have diff behavior if word already defined
-					Word temp (word, definition, grammar);
-
-					// replace duplicates if applicable
-					int dupes = 0;
-					for (int word = 0; word < runtimeWords.size(); word++)
-					{
-						// TODO: later, ask user which they'd prefer to delete
-						if (runtimeWords.at(word).getword() == temp.getword())
-						{
-							runtimeWords.at(word) = temp;
-							dupes = 1;
-						}
-					}
-					if (dupes == 0)	runtimeWords.push_back(temp);
-					werase (tt_window);
-					wprintw (tt_window, " Added the following entry:");
-					wprintw (tt_window, ("\n Word: " + word).c_str());
-					wprintw (tt_window, ("\n Definition: " + definition).c_str());
-					wprintw (tt_window, ("\n Grammatical Use: " + temp.getgrammar()).c_str());
-					
-
-
-					wgetch(tt_window); // Wait
-					print_words();
-
-				}
-				else if (inpch == 'n')
-				{
-					print_words();
-				}
-
-				break;
-			default:
-				print_words();
-				break;
-		}
-		refresh_tt ();
-
-
-	}
-
-
-// End exec
-	erase();
-	printw ("Saving dictionary...\n");
-	pushwords ();
-	printw ("Dictionary saved.\n");
-	printw ("Execution terminated. Press any key to continue...");
-	getch();
-	endwin(); // exit curse mode
-	return 0;
-}

@@ -1,5 +1,5 @@
-#ifndef WORD_H
-#define WORD_H
+#ifndef WORD_HPP
+#define WORD_HPP
 #include <string>
 
 using namespace std;
@@ -9,7 +9,7 @@ class Word
 	public:
 		Word ()
 		{
-			setWord ("Undefined", "Undefined", -1);
+			setWord ("Undefined", "Undefined", -1, 0);
 		}
 
 		Word (string w, string d, int g)
@@ -17,12 +17,27 @@ class Word
 			setWord (w, d, g);
 		}
 
+		Word (string w, string d, int g, int f)
+		{
+			setWord (w, d, g, f);
+		}
+
+
 		void setWord (string w, string d, int g)
 		{			
 			word = w;
 			definition = d;
 			grammar = g;
 		}
+
+		void setWord (string w, string d, int g, int f)
+		{			
+			word = w;
+			definition = d;
+			grammar = g;
+			familiarity = f;
+		}
+
 
 		string getword ()
 		{
@@ -56,10 +71,16 @@ class Word
 			grammar = g;
 		}
 
+		void setfam (int f)
+		{
+			familiarity = f;
+		}
+
 	private:
 		string word;
 		string definition;
 		int grammar;
+		int familiarity;
 };
 
 #endif
