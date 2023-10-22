@@ -11,16 +11,31 @@ On Debian-based systems (Debian, Ubuntu, Linux Mint, etc. [WSL2 is usually Debia
 sudo apt install g++ libncurses-dev
 ```
 
-## Building
+## Building & Running
 To build the project, cd into VACT/src and run the following
-```
-g++ -o ../bin/main main.cpp -lncurses
-```
-## Execution
-To execute the project cd into VACT/bin and run the following
-```
-./main
-```
+
+```g++ -o ../bin/main main.cpp -lncurses```
+
+or
+
+```sh build.sh```
+
+Run the project with
+
+```./main```
+
+or 
+
+```sh run.sh```
+
+Build and run with 
+
+```g++ -o ../bin/main main.cpp -lncurses; ./main```
+
+or
+
+```sh create.sh```
+
 
 ## Hotkeys
 While viewing document:
