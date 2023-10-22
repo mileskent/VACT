@@ -46,10 +46,19 @@ class Word
 
 		string getgrammar ()
 		{
-			string g[] = {"noun", "verb", "adverb", "article", "adjective", "other"};
+			vector<string> g = {"noun", "verb", "adverb", "article", "adjective", "other"};
 			if (grammar < 0) return "Undefined";
-			else return g[grammar];
+			if (grammar > g.size() -1 ) grammar = g.size() -1;
+			return g[grammar];
 		}
+	
+		string getfamiliarity ()
+		{
+			vector<string> f = {"New", "Hard", "Medium", "Easy", "Mastered"};
+			if (familiarity > f.size() -1 ) familiarity = f.size() -1;
+			return f[familiarity];
+		}
+
 
 		string getdefinition ()
 		{
