@@ -6,9 +6,6 @@
 
 using namespace std;
 
-// TODO: Add familiarity in UI
-// TODO: Structs
-
 WINDOW * text_box;
 WINDOW * text_window;
 WINDOW * tt_box;
@@ -21,8 +18,6 @@ const double TWPER = 0.7;
 vector<string> blocks;
 vector<Word> runtimeWords;
 int activeword = 0;
-int cx, cy;
-
 int iswordchar (char ch);
 int pushwords ();
 int pullwords ();
@@ -39,7 +34,12 @@ void dogram (int & grammar);
 void dofam (int & familiarity);
 void writeentry (string word, string definition, int grammar, int familiarity);
 Word getactiveword (string word);
-
+struct Pos
+{
+	int x;
+	int y;
+};
+Pos cursor;
 
 int main (void)
 {
@@ -76,9 +76,9 @@ int main (void)
 				if ( (inpch == KEY_BACKSPACE || inpch == 7 || inpch == 8) && bookname.length() > 0) // backspace; my machine detects as ascii 7 but it should be 8... 
 				{
 					// write over the original character that was there
-					getyx (stdscr, cy, cx);
+					getyx (stdscr, cursor.y, cursor.x);
 					printw (" ");
-					move (cy, cx);
+					move (cursor.y, cursor.x);
 					
 					// actually affect the string
 					bookname.pop_back();
@@ -179,11 +179,11 @@ int main (void)
 				{
 					int familiarity;
 
-					getyx (tt_window, cy, cx);
-					mvwprintw (tt_window, cy++ + 1, 1, "Modify which?");
-					mvwprintw (tt_window, cy++ + 1, 1, "1. Definition");
-					mvwprintw (tt_window, cy++ + 1, 1, "2. Grammar Use");
-					mvwprintw (tt_window, cy++ + 1, 1, "3. Familiarity");
+					getyx (tt_window, cursor.y, cursor.x);
+					mvwprintw (tt_window, cursor.y++ + 1, 1, "Modify which?");
+					mvwprintw (tt_window, cursor.y++ + 1, 1, "1. Definition");
+					mvwprintw (tt_window, cursor.y++ + 1, 1, "2. Grammar Use");
+					mvwprintw (tt_window, cursor.y++ + 1, 1, "3. Familiarity");
 
 					while ( (inpch = wgetch(tt_window)) < '1' || inpch > '3' );
 
@@ -214,9 +214,9 @@ int main (void)
 				// not defined
 				else
 				{
-					getyx (tt_window, cy, cx);
-					mvwprintw (tt_window, cy++ + 1, 1, "Add to dictionary?");
-					mvwprintw (tt_window, cy++ + 1, 1, "y\tn");
+					getyx (tt_window, cursor.y, cursor.x);
+					mvwprintw (tt_window, cursor.y++ + 1, 1, "Add to dictionary?");
+					mvwprintw (tt_window, cursor.y++ + 1, 1, "y\tn");
 					wrefresh (tt_window);
 					while ( (inpch = wgetch(tt_window)) != 'y' && inpch != 'n') { print_words(); }
 
@@ -411,7 +411,7 @@ int refresh_tt (void)
 			break;
 		}
 	}
-	getyx (tt_window, cy, cx);
+	getyx (tt_window, cursor.y, cursor.x);
 	if (!defined)
 	{
 		wprintw (tt_window, "This word is undefined.");
@@ -419,10 +419,10 @@ int refresh_tt (void)
 	else 
 	{
 		Word temp = runtimeWords.at(tindex);
-		mvwprintw (tt_window, cy++ + 1, 1, ("Word: " + temp.getword()).c_str());
-		mvwprintw (tt_window, cy++ + 1, 1, ("Definition: " + temp.getdefinition()).c_str());
-		mvwprintw (tt_window, cy++ + 1, 1, ("Grammatical Use: " + temp.getgrammar()).c_str());
-		mvwprintw (tt_window, cy++ + 1, 1, ("Familiarity: " + temp.getfamiliarity()).c_str());
+		mvwprintw (tt_window, cursor.y++ + 1, 1, ("Word: " + temp.getword()).c_str());
+		mvwprintw (tt_window, cursor.y++ + 1, 1, ("Definition: " + temp.getdefinition()).c_str());
+		mvwprintw (tt_window, cursor.y++ + 1, 1, ("Grammatical Use: " + temp.getgrammar()).c_str());
+		mvwprintw (tt_window, cursor.y++ + 1, 1, ("Familiarity: " + temp.getfamiliarity()).c_str());
 	}
 	wprintw (tt_window, "\n <Enter> to modify.");
 	
