@@ -1,5 +1,10 @@
 # Vocab Aquisition & Comprehension Tool - CIS 278
 
+## Installation
+```
+git clone https://github.com/AlexKCA/VACT.git
+```
+
 ## Dependencies
 NOTE: This project depends on ncurses.h which is a Unix library. It has only been tested on Linux, but MacOS and other Unix-based OSs should work. 
 
