@@ -6,7 +6,7 @@ git clone https://github.com/AlexKCA/VACT.git
 ```
 
 ## Dependencies
-NOTE: This project depends on ncurses.h which is a Unix library. It has only been tested on Linux, but MacOS and other Unix-based OSs should work. 
+NOTE: This project depends on ncurses.h which is a Unix library. *It has only been tested on Linux*, but MacOS and other Unix-based OSs should work. 
 
 If you are using Windows, [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) should allow you to run this project. However, I haven't specifically tested it. Alternatively, you could use a full-on virtual machine. However, WSL is more convienient.
 
