@@ -50,6 +50,7 @@ h - left
 j - down
 k - up
 l - right
+<Enter> - Select/Continue
 ```
 
 Menus:
