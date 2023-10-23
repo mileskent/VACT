@@ -1,6 +1,8 @@
 #include <ncurses.h>
-#include <cstring>
 #include <vector>
+#include <cstring>
+#include <chrono>
+#include <ctime>  
 #include "filereader.hpp"
 #include "word.hpp"
 
@@ -272,12 +274,16 @@ int pushwords()
 	file.close();
 
 	file.open("../res/dictionary/dict.vact", ios::app); // append mode
-	if (file.is_open())
+	ofstream log;
+	log.open("../log.txt", ios::app); // append mode
+	if (file.is_open() && log.is_open())
 	{
 		for (int id = 0; id < runtimeWords.size(); id++)
 		{
 			Word temp = runtimeWords.at(id);
-			cout << "Wrote " << temp.getword() << " to the dictionary." << endl;
+
+			time_t current_time = chrono::system_clock::to_time_t(chrono::system_clock::now());
+			log << "Wrote \"" << temp.getword() << "\" to the dictionary. " << ctime(&current_time) << endl;
 			file << temp.getword() << ";" << temp.getdefinition() << ";" << temp.getigrammar() << ";" << temp.getifamiliarity() << endl;
 		}
 		file.close();
