@@ -80,7 +80,6 @@ void writeentry (string word, string definition, int grammar, int familiarity)
 	int dupes = 0;
 	for (int word = 0; word < runtimeWords.size(); word++)
 	{
-		// TODO: later, ask user which they'd prefer to delete
 		if (runtimeWords.at(word).getword() == temp.getword())
 		{
 			runtimeWords.at(word) = temp;
@@ -231,10 +230,16 @@ int main (void)
 				}
 			
 
-
+				string block = blocks.at(activeword);
+				string word = getword(block);
+				string definition; 
+				int grammar;
+				
 				// already defined
 				if (d)
 				{
+					int familiarity;
+
 					getyx (tt_window, cy, cx);
 					mvwprintw (tt_window, cy++ + 1, 1, "Modify which?");
 					mvwprintw (tt_window, cy++ + 1, 1, "1. Definition");
@@ -243,10 +248,13 @@ int main (void)
 
 					while ( (inpch = wgetch(tt_window)) < '1' || inpch > '3' );
 
+					
 					// def
 					if (inpch == '1')
 					{
-						
+						// operator overloading to find the Word
+						dodef (definition);
+						writeentry (word, definition, grammar, familiarity);	
 					}
 					// grammar
 					else if (inpch == '2')
@@ -267,9 +275,6 @@ int main (void)
 				// not defined
 				else
 				{
-					string word = getword (blocks.at(activeword));
-					string definition; 
-					int grammar;
 					getyx (tt_window, cy, cx);
 					mvwprintw (tt_window, cy++ + 1, 1, "Add to dictionary?");
 					mvwprintw (tt_window, cy++ + 1, 1, "y\tn");

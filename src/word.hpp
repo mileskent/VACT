@@ -1,8 +1,12 @@
 #ifndef WORD_HPP
 #define WORD_HPP
 #include <string>
+#include <vector>
 
 using namespace std;
+
+vector<string> fvec = {"New", "Hard", "Medium", "Easy", "Mastered"};
+vector<string> gvec = {"noun", "verb", "adverb", "article", "adjective", "other"};
 
 class Word
 {
@@ -39,28 +43,24 @@ class Word
 		}
 
 
-		string getword ()
+		string getword () const
 		{
 			return word;
 		}
 
-		string getgrammar ()
+		string getgrammar () const
 		{
-			vector<string> g = {"noun", "verb", "adverb", "article", "adjective", "other"};
 			if (grammar < 0) return "Undefined";
-			if (grammar > g.size() -1 ) grammar = g.size() -1;
-			return g[grammar];
+			return gvec[grammar];
 		}
 	
-		string getfamiliarity ()
+		string getfamiliarity () const
 		{
-			vector<string> f = {"New", "Hard", "Medium", "Easy", "Mastered"};
-			if (familiarity > f.size() -1 ) familiarity = f.size() -1;
-			return f[familiarity];
+			return fvec[familiarity];
 		}
 
 
-		string getdefinition ()
+		string getdefinition () const
 		{
 			return definition;
 		}
@@ -77,12 +77,21 @@ class Word
 
 		void setgrammar (int g)
 		{
+			if (grammar > gvec.size() -1 ) grammar = gvec.size() -1;
 			grammar = g;
 		}
 
 		void setfam (int f)
 		{
+			if (familiarity > fvec.size() -1 ) familiarity = fvec.size() -1;
 			familiarity = f;
+		}
+
+		bool operator==(const Word& other) const 
+		{
+			return word == other.word 
+				&& definition == other.definition 
+				&& grammar == other.grammar;
 		}
 
 	private:
