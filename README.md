@@ -12,7 +12,7 @@ If you are using Windows, [WSL](https://learn.microsoft.com/en-us/windows/wsl/in
 
 To build this project, you will need g++ and ncurses.h
 On Debian-based systems (Debian, Ubuntu, Linux Mint, etc. [WSL2 is usually Debian-based by default]) you can run the following
-```bash
+```
 sudo apt install g++ libncurses-dev
 ```
 
