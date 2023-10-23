@@ -53,6 +53,6 @@ y - yes
 n - no
 ```
 ## Workflow
-1. Go to ```VACT/res/files/``` and add a ```.txt``` file with the text you want to process.
+1. Go to ```VACT/res/files/``` and add a ```.txt``` file with the text you want to process (or don't; there are some default files).
 2. ```sh create.sh``` to build and run the program. Now select the file you made in the program.
 3. Go through your file. Add entries to your dictionary and set your familiarity with particular words.
