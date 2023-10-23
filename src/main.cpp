@@ -252,11 +252,13 @@ int main (void)
 	return 0;
 }
 
+// Is the character one we want in our Word's word?
 int iswordchar (char ch)
 {
 	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '-' || (ch >= '0' && ch <= '9');
 }
 
+// Does the vector have string str?
 bool vechas (vector<string> vec, string str)
 {
 	for (int i = 0; i < vec.size(); i++)
@@ -266,6 +268,7 @@ bool vechas (vector<string> vec, string str)
 	return false;
 }
 
+// Update the dictionary file with the new words, after exec is done
 int pushwords()
 {
 	ofstream file;
@@ -292,6 +295,7 @@ int pushwords()
 	return 0;
 }
 
+// Get all the Words from the dictionary file on init
 int pullwords()
 {
         int id = 0;
@@ -326,6 +330,7 @@ int pullwords()
         return 0;
 }
 
+// tolower an entire string
 string tolower (string str)
 {
 	for (int i = 0; i < str.length(); i++)
@@ -338,6 +343,7 @@ string tolower (string str)
 	return str;
 }
 
+// for each "block" (text in between spaces) get the word and the punctuation on the start and end, and isolate them
 void dopunct (string block, string & start, string & word, string & end)
 {
 	// Handle punctuation	
@@ -380,6 +386,7 @@ void dopunct (string block, string & start, string & word, string & end)
 
 }
 
+// return the word string from dopunct ^
 string getword (string block)
 {
 	string s, w, e;
@@ -388,6 +395,7 @@ string getword (string block)
 	return w;
 }
 
+// the basic tooltip window
 int refresh_tt (void)
 {
 
@@ -438,6 +446,7 @@ int refresh_tt (void)
 
 }
 
+// fix the orientation of the text window; we want WORD_CAP words to be shown 
 int fixori (void)
 {
 	if (activeword >= WORD_CAP + first_word) first_word = activeword;
@@ -449,6 +458,7 @@ int fixori (void)
 	return 0;
 }
 
+// is the word string defined in the runtimeWords vector?
 int isdefinedword (string word)
 {
 	for (int i = 0; i < runtimeWords.size(); i++)
@@ -458,6 +468,7 @@ int isdefinedword (string word)
 	return 0;
 }
 
+// output all of the words the we want to view into the text window
 int print_words (void)
 {
 
@@ -510,6 +521,7 @@ int print_words (void)
 	return 0;
 }
 
+// handle assigning the definition of a word
 void dodef (string & definition)
 {
 	mvwprintw (tt_window, 1, 1, "Definition: ");
@@ -526,6 +538,7 @@ void dodef (string & definition)
 	noecho();
 }
 
+// handle assigning the grammar of a word
 void dogram (int & grammar)
 {
 	inpch = 0;
@@ -543,6 +556,9 @@ void dogram (int & grammar)
 	}
 	grammar = inpch - 1; 
 }
+
+
+// handle assigning the familiarity of a word
 void dofam (int & familiarity)
 {
 	inpch = 0;
@@ -559,6 +575,8 @@ void dofam (int & familiarity)
 	}
 	familiarity = inpch - 1; 
 }
+
+// write Word to runtime entries and remove dupes if applicable
 void writeentry (string word, string definition, int grammar, int familiarity)
 {
 	// now write it to vector -> this scen will have diff behavior if word already defined
@@ -586,6 +604,7 @@ void writeentry (string word, string definition, int grammar, int familiarity)
 	wgetch(tt_window); // Wait
 }
 
+// get "activeword" as a Word from runtimeWords
 Word getactiveword (string word)
 {
 	for (Word w : runtimeWords)
