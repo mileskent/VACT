@@ -37,6 +37,68 @@ bool vechas (vector<string> vec, string str);
 string getword (string block);
 string tolower (string str);
 
+void dodef (string & definition)
+{
+	mvwprintw (tt_window, 1, 1, "Definition: ");
+	nocbreak ();	
+	echo();
+	int ch = wgetch(tt_window);
+	
+	while ( ch != '\n' )
+	{
+		definition.push_back( ch );
+		ch = wgetch(tt_window);
+	}
+	cbreak();
+	noecho();
+}
+
+void dogram (int & grammar)
+{
+	inpch = 0;
+	wprintw (tt_window, " 1. Noun\n ");
+	wprintw (tt_window, "2. Verb\n ");
+	wprintw (tt_window, "3. Adverb\n ");
+	wprintw (tt_window, "4. Article\n ");
+	wprintw (tt_window, "5. Adjective\n ");
+	wprintw (tt_window, "6. Other\n ");
+	
+	inpch = wgetch(tt_window) - '0'; // -'0' important; '0'-'9' != 0-9
+	while ( !(inpch <= 6 && inpch >= 1) )
+	{
+		inpch = wgetch(tt_window) - '0';
+	}
+	grammar = inpch - 1; 
+}
+
+void writeentry (string word, string definition, int grammar, int familiarity)
+{
+	// now write it to vector -> this scen will have diff behavior if word already defined
+	Word temp (word, definition, grammar, familiarity);
+
+	// replace duplicates if applicable
+	int dupes = 0;
+	for (int word = 0; word < runtimeWords.size(); word++)
+	{
+		// TODO: later, ask user which they'd prefer to delete
+		if (runtimeWords.at(word).getword() == temp.getword())
+		{
+			runtimeWords.at(word) = temp;
+			dupes = 1;
+		}
+	}
+	if (dupes == 0)	runtimeWords.push_back(temp);
+	werase (tt_window);
+	wprintw (tt_window, " Added the following entry:");
+	wprintw (tt_window, ("\n Word: " + word).c_str());
+	wprintw (tt_window, ("\n Definition: " + definition).c_str());
+	wprintw (tt_window, ("\n Grammatical Use: " + temp.getgrammar()).c_str());
+	wprintw (tt_window, ("\n Familiarity: " + temp.getfamiliarity()).c_str());
+
+
+	wgetch(tt_window); // Wait
+}
+
 int main (void)
 {
 
@@ -158,109 +220,74 @@ int main (void)
 				print_words();
 				break;
 			case '\n':
-				
-				getyx (tt_window, cy, cx);
-				mvwprintw (tt_window, cy++ + 1, 1, "Modify which?");
-				mvwprintw (tt_window, cy++ + 1, 1, "1. Definition");
-				mvwprintw (tt_window, cy++ + 1, 1, "2. Grammar Use");
-				mvwprintw (tt_window, cy++ + 1, 1, "3. Familiarity");
-				
-				while ( (inpch = wgetch(tt_window)) < '1' || inpch > '3' );
-
-				inpch = '1';
-
-				if (inpch == '1')
+				// check if word is already defined
+				for (int word = 0; word < runtimeWords.size(); word++)
 				{
-					// check if word is already defined
-					for (int word = 0; word < runtimeWords.size(); word++)
+					if (runtimeWords.at(word).getword() == getword(blocks.at(activeword)))
 					{
-						if (runtimeWords.at(word).getword() == getword(blocks.at(activeword)))
-						{
-							d = 1;
-							break;
-						}
+						d = 1;
+						break;
 					}
-					if (!d)
+				}
+			
+
+
+				// already defined
+				if (d)
+				{
+					getyx (tt_window, cy, cx);
+					mvwprintw (tt_window, cy++ + 1, 1, "Modify which?");
+					mvwprintw (tt_window, cy++ + 1, 1, "1. Definition");
+					mvwprintw (tt_window, cy++ + 1, 1, "2. Grammar Use");
+					mvwprintw (tt_window, cy++ + 1, 1, "3. Familiarity");
+
+					while ( (inpch = wgetch(tt_window)) < '1' || inpch > '3' );
+
+					// def
+					if (inpch == '1')
 					{
-						getyx (tt_window, cy, cx);
-						mvwprintw (tt_window, cy++ + 1, 1, "Add to dictionary?");
-						mvwprintw (tt_window, cy++ + 1, 1, "y\tn");
-						wrefresh (tt_window);
-						while ( (inpch = wgetch(tt_window)) != 'y' && inpch != 'n') { print_words(); }
+						
 					}
-					else inpch = 'y';
+					// grammar
+					else if (inpch == '2')
+					{
+						wclear (tt_window);
+						wprintw (tt_window, "\n");
+						wgetch (tt_window);
+					}
+
+					// fam
+					else if (inpch == '3')
+					{
+						wprintw (tt_window, "The third option\n");
+						wgetch (tt_window);
+					}
+
+				}
+				// not defined
+				else
+				{
+					string word = getword (blocks.at(activeword));
+					string definition; 
+					int grammar;
+					getyx (tt_window, cy, cx);
+					mvwprintw (tt_window, cy++ + 1, 1, "Add to dictionary?");
+					mvwprintw (tt_window, cy++ + 1, 1, "y\tn");
+					wrefresh (tt_window);
+					while ( (inpch = wgetch(tt_window)) != 'y' && inpch != 'n') { print_words(); }
 
 					if (inpch == 'y')
 					{
 						werase (tt_window);
-						// TODO: later, add confirm choice later for each field
-						string word = getword (blocks.at(activeword));
-						string definition; 
-						int grammar;
-						
-						mvwprintw (tt_window, 1, 1, "Definition: ");
-						nocbreak ();	
-						echo();
-						int ch = wgetch(tt_window);
-						
-						while ( ch != '\n' )
-						{
-							definition.push_back( ch );
-							ch = wgetch(tt_window);
-						}
-						cbreak();
-						noecho();
-
-						ch = 0;
-						wprintw (tt_window, " 1. Noun\n ");
-						wprintw (tt_window, "2. Verb\n ");
-						wprintw (tt_window, "3. Adverb\n ");
-						wprintw (tt_window, "4. Article\n ");
-						wprintw (tt_window, "5. Adjective\n ");
-						wprintw (tt_window, "6. Other\n ");
-						
-						ch = wgetch(tt_window) - '0'; // -'0' important; '0'-'9' != 0-9
-						while ( !(ch <= 6 && ch >= 1) )
-						{
-							ch = wgetch(tt_window) - '0';
-						}
-						grammar = ch - 1; 
-						// now write it to vector -> this scen will have diff behavior if word already defined
-						Word temp (word, definition, grammar, 0);
-
-						// replace duplicates if applicable
-						int dupes = 0;
-						for (int word = 0; word < runtimeWords.size(); word++)
-						{
-							// TODO: later, ask user which they'd prefer to delete
-							if (runtimeWords.at(word).getword() == temp.getword())
-							{
-								runtimeWords.at(word) = temp;
-								dupes = 1;
-							}
-						}
-						if (dupes == 0)	runtimeWords.push_back(temp);
-						werase (tt_window);
-						wprintw (tt_window, " Added the following entry:");
-						wprintw (tt_window, ("\n Word: " + word).c_str());
-						wprintw (tt_window, ("\n Definition: " + definition).c_str());
-						wprintw (tt_window, ("\n Grammatical Use: " + temp.getgrammar()).c_str());
-						wprintw (tt_window, ("\n Familiarity: " + temp.getfamiliarity()).c_str());
-						
-
-						wgetch(tt_window); // Wait
-
+						dodef (definition);
+						dogram (grammar);
+						writeentry (word, definition, grammar, 0);	
 					}
+
 				}
-				else if (inpch == '2')
-				{
-					printw ("The third option\n");
-				}
-				else if (inpch == '3')
-				{
-					printw ("The third option\n");
-				}
-				
+
+
+								
 				print_words();
 				break;
 			default:
@@ -410,6 +437,7 @@ string getword (string block)
 {
 	string s, w, e;
 	dopunct (block, s, w, e);
+	w = tolower(w);
 	return w;
 }
 
@@ -499,7 +527,7 @@ int print_words (void)
 				// print nonalphanum start
 		wprintw (text_window, start.c_str());
 		
-		if (!isdefinedword(word))
+		if (!isdefinedword(tolower(word))) // to lower bc we want "Snake" and "snake" and "SNAKE" to have the same def
 		{
 			wattron (text_window, A_UNDERLINE);
 		}
