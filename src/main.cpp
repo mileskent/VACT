@@ -7,9 +7,7 @@
 using namespace std;
 
 // TODO: Add familiarity in UI
-// TODO: Operator Overloading ++ -- for words famil
 // TODO: Structs
-// TODO: Algo for Word Cap
 
 WINDOW * text_box;
 WINDOW * text_window;
@@ -36,67 +34,12 @@ int print_words (void);
 bool vechas (vector<string> vec, string str);
 string getword (string block);
 string tolower (string str);
+void dodef (string & definition);
+void dogram (int & grammar);
+void dofam (int & familiarity);
+void writeentry (string word, string definition, int grammar, int familiarity);
+Word getactiveword (string word);
 
-void dodef (string & definition)
-{
-	mvwprintw (tt_window, 1, 1, "Definition: ");
-	nocbreak ();	
-	echo();
-	int ch = wgetch(tt_window);
-	
-	while ( ch != '\n' )
-	{
-		definition.push_back( ch );
-		ch = wgetch(tt_window);
-	}
-	cbreak();
-	noecho();
-}
-
-void dogram (int & grammar)
-{
-	inpch = 0;
-	wprintw (tt_window, " 1. Noun\n ");
-	wprintw (tt_window, "2. Verb\n ");
-	wprintw (tt_window, "3. Adverb\n ");
-	wprintw (tt_window, "4. Article\n ");
-	wprintw (tt_window, "5. Adjective\n ");
-	wprintw (tt_window, "6. Other\n ");
-	
-	inpch = wgetch(tt_window) - '0'; // -'0' important; '0'-'9' != 0-9
-	while ( !(inpch <= 6 && inpch >= 1) )
-	{
-		inpch = wgetch(tt_window) - '0';
-	}
-	grammar = inpch - 1; 
-}
-
-void writeentry (string word, string definition, int grammar, int familiarity)
-{
-	// now write it to vector -> this scen will have diff behavior if word already defined
-	Word temp (word, definition, grammar, familiarity);
-
-	// replace duplicates if applicable
-	int dupes = 0;
-	for (int word = 0; word < runtimeWords.size(); word++)
-	{
-		if (runtimeWords.at(word).getword() == temp.getword())
-		{
-			runtimeWords.at(word) = temp;
-			dupes = 1;
-		}
-	}
-	if (dupes == 0)	runtimeWords.push_back(temp);
-	werase (tt_window);
-	wprintw (tt_window, " Added the following entry:");
-	wprintw (tt_window, ("\n Word: " + word).c_str());
-	wprintw (tt_window, ("\n Definition: " + definition).c_str());
-	wprintw (tt_window, ("\n Grammatical Use: " + temp.getgrammar()).c_str());
-	wprintw (tt_window, ("\n Familiarity: " + temp.getfamiliarity()).c_str());
-
-
-	wgetch(tt_window); // Wait
-}
 
 int main (void)
 {
@@ -196,7 +139,6 @@ int main (void)
 					activeword--;
 					fixori();
 				}
-				print_words();
 				break;
 			case 'l':
 				if (activeword < blocks.size() - 1)
@@ -204,19 +146,16 @@ int main (void)
 					activeword++;
 					fixori();
 				}
-				print_words();
 				break;
 			case 'k':
 				activeword -= jumplen;
 				if (activeword < 0) activeword = 0;
 				fixori();
-				print_words();
 				break;
 			case 'j':
 				activeword += jumplen;
 				if (activeword >= blocks.size()) activeword = blocks.size() - 1;
 				fixori();
-				print_words();
 				break;
 			case '\n':
 				// check if word is already defined
@@ -248,29 +187,29 @@ int main (void)
 
 					while ( (inpch = wgetch(tt_window)) < '1' || inpch > '3' );
 
-					
+					// get the member vars from the word
+					Word temp = getactiveword (word);
+					wclear (tt_window);
+
 					// def
 					if (inpch == '1')
 					{
-						// operator overloading to find the Word
 						dodef (definition);
-						writeentry (word, definition, grammar, familiarity);	
+						writeentry (temp.getword(), definition, temp.getigrammar(), temp.getifamiliarity());
 					}
 					// grammar
 					else if (inpch == '2')
 					{
-						wclear (tt_window);
-						wprintw (tt_window, "\n");
-						wgetch (tt_window);
+						dogram (grammar);
+						writeentry (temp.getword(), temp.getdefinition(), grammar, temp.getifamiliarity());
 					}
 
 					// fam
 					else if (inpch == '3')
 					{
-						wprintw (tt_window, "The third option\n");
-						wgetch (tt_window);
+						dofam (familiarity);
+						writeentry (temp.getword(), temp.getdefinition(), temp.getigrammar(), familiarity);
 					}
-
 				}
 				// not defined
 				else
@@ -290,15 +229,9 @@ int main (void)
 					}
 
 				}
-
-
-								
-				print_words();
-				break;
-			default:
-				print_words();
 				break;
 		}
+		print_words();
 		refresh_tt ();
 
 
@@ -345,7 +278,7 @@ int pushwords()
 		{
 			Word temp = runtimeWords.at(id);
 			cout << "Wrote " << temp.getword() << " to the dictionary." << endl;
-			file << temp.getword() << ";" << temp.getdefinition() << ";" << temp.getgrammar() << endl;
+			file << temp.getword() << ";" << temp.getdefinition() << ";" << temp.getigrammar() << ";" << temp.getifamiliarity() << endl;
 		}
 		file.close();
 	}
@@ -371,9 +304,12 @@ int pullwords()
                         len = istring.substr(start).find_first_of(';');
                         temp.setdef (istring.substr(start, len));
 
+					    start += len + 1;
+                        len = istring.substr(start).find_first_of(';');
+                        temp.setgrammar (atoi( istring.substr(start, len).c_str() ));
 
                         start += len + 1;
-                        temp.setgrammar (atoi(istring.substr(start).c_str()));
+                        temp.setfam (atoi( istring.substr(start).c_str() ));
 
                         runtimeWords.push_back (temp);
                         id++;
@@ -566,5 +502,95 @@ int print_words (void)
 	wrefresh (text_window);
 
 	return 0;
+}
+
+void dodef (string & definition)
+{
+	mvwprintw (tt_window, 1, 1, "Definition: ");
+	nocbreak ();	
+	echo();
+	int ch = wgetch(tt_window);
+	
+	while ( ch != '\n' )
+	{
+		definition.push_back( ch );
+		ch = wgetch(tt_window);
+	}
+	cbreak();
+	noecho();
+}
+
+void dogram (int & grammar)
+{
+	inpch = 0;
+	wprintw (tt_window, " 1. Noun\n ");
+	wprintw (tt_window, "2. Verb\n ");
+	wprintw (tt_window, "3. Adverb\n ");
+	wprintw (tt_window, "4. Article\n ");
+	wprintw (tt_window, "5. Adjective\n ");
+	wprintw (tt_window, "6. Other\n ");
+	
+	inpch = wgetch(tt_window) - '0'; // -'0' important; '0'-'9' != 0-9
+	while ( !(inpch <= 6 && inpch >= 1) )
+	{
+		inpch = wgetch(tt_window) - '0';
+	}
+	grammar = inpch - 1; 
+}
+void dofam (int & familiarity)
+{
+	inpch = 0;
+	wprintw (tt_window, " 1. New\n ");
+	wprintw (tt_window, " 2. Hard\n ");
+	wprintw (tt_window, " 3. Medium\n ");
+	wprintw (tt_window, " 4. Easy\n ");
+	wprintw (tt_window, " 5. Mastered\n ");
+	
+	inpch = wgetch(tt_window) - '0'; // -'0' important; '0'-'9' != 0-9
+	while ( !(inpch <= 5 && inpch >= 1) )
+	{
+		inpch = wgetch(tt_window) - '0';
+	}
+	familiarity = inpch - 1; 
+}
+void writeentry (string word, string definition, int grammar, int familiarity)
+{
+	// now write it to vector -> this scen will have diff behavior if word already defined
+	Word temp (word, definition, grammar, familiarity);
+
+	// replace duplicates if applicable
+	int dupes = 0;
+	for (int word = 0; word < runtimeWords.size(); word++)
+	{
+		if (runtimeWords.at(word).getword() == temp.getword())
+		{
+			runtimeWords.at(word) = temp;
+			dupes = 1;
+		}
+	}
+	if (dupes == 0)	runtimeWords.push_back(temp);
+	werase (tt_window);
+	wprintw (tt_window, " Added the following entry:");
+	wprintw (tt_window, ("\n Word: " + word).c_str());
+	wprintw (tt_window, ("\n Definition: " + definition).c_str());
+	wprintw (tt_window, ("\n Grammatical Use: " + temp.getgrammar()).c_str());
+	wprintw (tt_window, ("\n Familiarity: " + temp.getfamiliarity()).c_str());
+
+
+	wgetch(tt_window); // Wait
+}
+
+Word getactiveword (string word)
+{
+	for (Word w : runtimeWords)
+	{
+		if (w == word)
+		{
+			return w;
+		}
+	}
+
+	cerr << "Error! Internal disagreement about existence of dictionary entry." << endl;
+	return Word();
 }
 

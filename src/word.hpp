@@ -53,10 +53,21 @@ class Word
 			if (grammar < 0) return "Undefined";
 			return gvec[grammar];
 		}
+
+		int getigrammar () const
+		{
+			return grammar;
+		}
+
 	
 		string getfamiliarity () const
 		{
 			return fvec[familiarity];
+		}
+
+		int getifamiliarity () const
+		{
+			return familiarity;
 		}
 
 
@@ -86,12 +97,18 @@ class Word
 			if (familiarity > fvec.size() -1 ) familiarity = fvec.size() -1;
 			familiarity = f;
 		}
-
-		bool operator==(const Word& other) const 
+		
+		// only care about title (word) of entry
+		// this is used for removing dupes and such so we want to eval is true even if grammar et al doesnt match
+		// no situation where having two entries with same title and diff def is good
+		bool operator==(const Word & other) const 
 		{
-			return word == other.word 
-				&& definition == other.definition 
-				&& grammar == other.grammar;
+			return word == other.word;
+		}
+		
+		bool operator==(const string & other) const 
+		{
+			return word == other;
 		}
 
 	private:
