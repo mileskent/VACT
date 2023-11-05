@@ -19,27 +19,11 @@ sudo apt install g++ libncurses-dev
 ## Building & Running
 To build the project, cd into VACT/src and run the following
 
-```g++ -o ../bin/main main.cpp -lncurses```
-
-or
-
 ```sh build.sh```
 
-Run the project with
+In VACT/bin Run the project with
 
 ```./main```
-
-or 
-
-```sh run.sh```
-
-Build and run with 
-
-```g++ -o ../bin/main main.cpp -lncurses; ./main```
-
-or
-
-```sh create.sh```
 
 
 ## Hotkeys
