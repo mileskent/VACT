@@ -1,4 +1,4 @@
-# Vocab Acquisition & Comprehension Tool - CIS 278
+# Vocab Acquisition & Comprehension Tool (CLI) - CIS 278
 
 ## Installation
 ```
