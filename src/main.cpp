@@ -605,10 +605,10 @@ void writeentry (string word, string definition, int grammar, int familiarity)
 	if (dupes == 0)	runtimeWords.push_back(temp);
 	werase (tt_window);
 	wprintw (tt_window, " Added the following entry:");
-	wprintw (tt_window, ("\n Word: " + word).c_str());
-	wprintw (tt_window, ("\n Definition: " + definition).c_str());
-	wprintw (tt_window, ("\n Grammatical Use: " + temp.getgrammar()).c_str());
-	wprintw (tt_window, ("\n Familiarity: " + temp.getfamiliarity()).c_str());
+	wprintw (tt_window, ("\n Word: " + word + "\n").c_str());
+	wprintw (tt_window, ("Definition: " + definition + "\n").c_str());
+	wprintw (tt_window, ("Grammatical Use: " + temp.getgrammar() + "\n").c_str());
+	wprintw (tt_window, ("Familiarity: " + temp.getfamiliarity() + "\n").c_str());
 
 
 	wgetch(tt_window); // Wait
