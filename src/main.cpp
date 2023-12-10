@@ -8,6 +8,8 @@
 
 using namespace std;
 
+#define REDFGPAIR 1
+
 WINDOW * text_box;
 WINDOW * text_window;
 WINDOW * tt_box;
@@ -196,31 +198,23 @@ int main_init () {
 }
 
 int choose_text () {
-// desired text
-	vector<string> fileoptions = gettexts();
-	if (fileoptions.size() > 0)
-	{
+	vector<string> fileoptions = gettexts(); // get the texts from the appropriate directory
+	if (fileoptions.size() > 0)	{
 		echo ();
-		while ( !vechas(fileoptions, bookname) )
-		{
+		while ( !vechas(fileoptions, bookname) ) {
 			bookname = "";
 			printw ("Enter the name of the file you want.\n");
-			for (string file : fileoptions)
-			{
+			for (string file : fileoptions)	{
 				printw ((" > " + file + "\n").c_str());
 			}
 			inpch = getch(); 
-			while ( inpch != '\n' )
-			{
-				if ( (inpch == KEY_BACKSPACE || inpch == 7 || inpch == 8) && bookname.length() > 0) // backspace; my machine detects as ascii 7 but it should be 8... 
-				{
-					// write over the original character that was there
-					getyx (stdscr, cursor.y, cursor.x);
+			while ( inpch != '\n' ) {
+                // backspace; my machine detects as ascii 7 but it should be 8... 
+				if ( (inpch == KEY_BACKSPACE || inpch == 7 || inpch == 8) && bookname.length() > 0) { 
+					getyx (stdscr, cursor.y, cursor.x); // write over the original character that was there
 					printw (" ");
 					move (cursor.y, cursor.x);
-					
-					// actually affect the string
-					bookname.pop_back();
+					bookname.pop_back(); // actually affect the string
 				}
 				else // everything else
 				{
@@ -231,9 +225,10 @@ int choose_text () {
 			refresh (); // can still see the text even when I don't call this for some reason; here for safety
 			clear();
 
-			if ( !vechas(fileoptions, bookname) ) 
-			{
+			if ( !vechas(fileoptions, bookname) ) {
+                attron(COLOR_PAIR(REDFGPAIR));
 				printw ( ("You entered \"" + bookname + "\". File does not exist. Please try again.\n").c_str() );
+                attroff(COLOR_PAIR(REDFGPAIR));
 			}
 		}
 		noecho ();
@@ -260,6 +255,7 @@ int ncurses_init () {
 		return 1;
 	}
 	start_color();				// color
+    init_pair(REDFGPAIR, COLOR_RED, COLOR_BLACK);
 	noecho (); // hide input
     return 0;
 }
@@ -499,6 +495,7 @@ int print_words (void)
 		
 		if (!isdefinedword(tolower(word))) // to lower bc we want "Snake" and "snake" and "SNAKE" to have the same def
 		{
+            wattron(text_window, COLOR_PAIR(REDFGPAIR));
 			wattron (text_window, A_UNDERLINE);
 		}
 
@@ -517,6 +514,7 @@ int print_words (void)
 		if (!isdefinedword(word))
 		{
 			wattroff (text_window, A_UNDERLINE);
+            wattroff(text_window, COLOR_PAIR(REDFGPAIR));
 		}
 
 
