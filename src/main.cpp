@@ -20,10 +20,12 @@ const double TWPER = 0.7;
 vector<string> blocks;
 vector<Word> runtimeWords;
 int activeword = 0;
+const int jumplen = 10;
+
 int iswordchar (char ch);
 int pushwords ();
 int pullwords ();
-void dopunct (string block, string & start, string & word, string & end);
+void dopunct (string block, string& start, string& word, string& end);
 int refresh_tt (void);
 int fixori (void);
 int isdefinedword (string word);
@@ -31,11 +33,17 @@ int print_words (void);
 bool vechas (vector<string> vec, string str);
 string getword (string block);
 string tolower (string str);
-void dodef (string & definition);
-void dogram (int & grammar);
-void dofam (int & familiarity);
+void dodef (string& definition);
+void dogram (int& grammar);
+void dofam (int& familiarity);
 void writeentry (string word, string definition, int grammar, int familiarity);
 Word getactiveword (string word);
+int ncurses_init();
+int choose_text();
+int main_init();
+int main_loop();
+int end_deinit();
+
 struct Pos
 {
 	int x;
@@ -45,91 +53,17 @@ Pos cursor;
 
 int main (void)
 {
-
-// init ncurses stuff
-	initscr();					// Start curses mode
-	cbreak();					// Line Buffering Off
-	keypad(stdscr, true);		// Functions keys, etc
-	if(has_colors() == false)
-	{ 
-		endwin();
-		cout << "Your terminal does not support color! D:" << endl;
-		return 1;
-	}
-	start_color();				// color
-	noecho (); // hide input
-
-// get text	
-	vector<string> fileoptions = gettexts();
-	if (fileoptions.size() > 0)
-	{
-		echo ();
-		while ( !vechas(fileoptions, bookname) )
-		{
-			bookname = "";
-			printw ("Enter the name of the file you want.\n");
-			for (string file : fileoptions)
-			{
-				printw ((" > " + file + "\n").c_str());
-			}
-			inpch = getch(); 
-			while ( inpch != '\n' )
-			{
-				if ( (inpch == KEY_BACKSPACE || inpch == 7 || inpch == 8) && bookname.length() > 0) // backspace; my machine detects as ascii 7 but it should be 8... 
-				{
-					// write over the original character that was there
-					getyx (stdscr, cursor.y, cursor.x);
-					printw (" ");
-					move (cursor.y, cursor.x);
-					
-					// actually affect the string
-					bookname.pop_back();
-				}
-				else // everything else
-				{
-					bookname.push_back (inpch);
-				}
-				inpch = getch();
-			}
-			refresh (); // can still see the text even when I don't call this for some reason; here for safety
-			clear();
-
-			if ( !vechas(fileoptions, bookname) ) 
-			{
-				printw ( ("You entered \"" + bookname + "\". File does not exist. Please try again.\n").c_str() );
-			}
-		}
-		noecho ();
-	}
-	else
-	{
-		printw ("Error. No available texts. Ending execution now.\n");
-		refresh();
-		getch();
-		endwin(); 
-		return 1;
-	}
-	
-// init word stuff
-	blocks = slurp (bookname);
-	pullwords ();
-
-// init screen
-	// Create text window
-	text_box = newwin((int)(LINES), (int)(COLS * TWPER), 0, 0); 	
-	text_window = newwin((int)(LINES) - 2, (int)(COLS * TWPER) - 2, 1, 1);	
-
-	print_words ();
-	
-	// Create tooltip window
-	tt_box = newwin (LINES, (int)(COLS * (1 - TWPER)), 0, (int)(COLS * TWPER));
-	tt_window = newwin (LINES - 2, (int)(COLS * (1 - TWPER)) - 2, 1, (int)(COLS * TWPER) + 1);
-
-	refresh_tt ();
+    ncurses_init();
+    choose_text();
+    main_init();
+    main_loop();
+    end_deinit();
+	return 0;
+}
 
 
-// input
-	const int jumplen = 10;
+int main_loop () {
+    // main loop
 	int d = 0;
 	while ((inpch = wgetch(text_window)) != 'q')
 	{ 
@@ -238,18 +172,96 @@ int main (void)
 
 
 	}
+    return 0;
+}
 
+int main_init () {
+    // init word stuff
+	blocks = slurp (bookname);
+	pullwords ();
 
-// End exec
-	clear ();
-	printw ("Saving dictionary...\n");
-	pushwords ();
-	printw ("Dictionary saved.\n");
-	printw ("Execution terminated. Press any key to continue...");
-	refresh ();
-	getch();
-	endwin(); // exit curse mode
-	return 0;
+    // init screen
+	// Create text window
+	text_box = newwin((int)(LINES), (int)(COLS * TWPER), 0, 0); 	
+	text_window = newwin((int)(LINES) - 2, (int)(COLS * TWPER) - 2, 1, 1);	
+
+	print_words ();
+	
+	// Create tooltip window
+	tt_box = newwin (LINES, (int)(COLS * (1 - TWPER)), 0, (int)(COLS * TWPER));
+	tt_window = newwin (LINES - 2, (int)(COLS * (1 - TWPER)) - 2, 1, (int)(COLS * TWPER) + 1);
+
+	refresh_tt ();
+    return 0;
+}
+
+int choose_text () {
+// desired text
+	vector<string> fileoptions = gettexts();
+	if (fileoptions.size() > 0)
+	{
+		echo ();
+		while ( !vechas(fileoptions, bookname) )
+		{
+			bookname = "";
+			printw ("Enter the name of the file you want.\n");
+			for (string file : fileoptions)
+			{
+				printw ((" > " + file + "\n").c_str());
+			}
+			inpch = getch(); 
+			while ( inpch != '\n' )
+			{
+				if ( (inpch == KEY_BACKSPACE || inpch == 7 || inpch == 8) && bookname.length() > 0) // backspace; my machine detects as ascii 7 but it should be 8... 
+				{
+					// write over the original character that was there
+					getyx (stdscr, cursor.y, cursor.x);
+					printw (" ");
+					move (cursor.y, cursor.x);
+					
+					// actually affect the string
+					bookname.pop_back();
+				}
+				else // everything else
+				{
+					bookname.push_back (inpch);
+				}
+				inpch = getch();
+			}
+			refresh (); // can still see the text even when I don't call this for some reason; here for safety
+			clear();
+
+			if ( !vechas(fileoptions, bookname) ) 
+			{
+				printw ( ("You entered \"" + bookname + "\". File does not exist. Please try again.\n").c_str() );
+			}
+		}
+		noecho ();
+	}
+	else
+	{
+		printw ("Error. No available texts. Ending execution now.\n");
+		refresh();
+		getch();
+		endwin(); 
+		return 1;
+	}
+    return 0;
+}
+
+int ncurses_init () {
+	initscr();					// Start curses mode
+	cbreak();					// Line Buffering Off
+	keypad(stdscr, true);		// Functions keys, etc
+	if(has_colors() == false)
+	{ 
+		endwin();
+		cout << "Your terminal does not support color! D:" << endl;
+		return 1;
+	}
+	start_color();				// color
+	noecho (); // hide input
+    return 0;
 }
 
 // Is the character one we want in our Word's word?
@@ -619,3 +631,15 @@ Word getactiveword (string word)
 	return Word();
 }
 
+int end_deinit() {
+    // End exec
+	clear ();
+	printw ("Saving dictionary...\n");
+	pushwords ();
+	printw ("Dictionary saved.\n");
+	printw ("Execution terminated. Press any key to continue...");
+	refresh ();
+	getch();
+	endwin(); // exit curse mode
+    return 0;
+}
