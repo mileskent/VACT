@@ -37,6 +37,15 @@ public:
         delete todelete;
     }
 
+    bool contains (Word word) {
+        Node* current = head;
+        while (current != nullptr) {
+            if (current->word == word) return true; 
+            current = current->next;
+        }
+        return false;
+    }
+
     void push_back_node (Word word)
     {
         Node* topushback = new Node;
