@@ -11,11 +11,13 @@ NOTE: This project depends on ncurses.h which is a Unix library. *It has only be
 If you are using Windows, [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) should allow you to run this project. However, I haven't specifically tested it. Alternatively, you could use a full-on virtual machine. However, WSL is more convienient.
 
 To build this project, you will need g++ and ncurses.h
-Debian-based
+
+
+**Debian-based (WSL, Ubuntu, Debian, Linux Mint)**
 ```
 sudo apt install g++ libncurses-dev
 ```
-Arch
+**Arch**
 ```
 sudo pacman -S ncurses gcc
 ```
