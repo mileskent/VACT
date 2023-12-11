@@ -37,11 +37,6 @@ l - right
 <Enter> - Select/Continue
 ```
 
-Menus:
-```
-y - yes
-n - no
-```
 ## Workflow
 1. Go to ```VACT/res/files/``` and add a ```.txt``` file with the text you want to process (or don't; there are some default files).
 2. Build and run.
