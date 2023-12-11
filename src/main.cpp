@@ -3,15 +3,15 @@
 #include <cstring>
 #include <chrono>
 #include <ctime>  
-#include <memory>
+#include <memory> // std::unique_ptr
 #include "filereader.hpp"
 #include "word.hpp"
 #include "verb.hpp"
+#include "sllist.hpp"
 
 using namespace std;
 
 #define REDFGPAIR 1
-
 WINDOW * text_box;
 WINDOW * text_window;
 WINDOW * tt_box;
@@ -20,15 +20,15 @@ string bookname = "";
 char inpch;
 int WORD_BUFFER_SIZE = 500; 
 const double TWPER = 0.7;
-vector<string> blocks;
-vector<Word> runtimeWords;
+vector<string> textstrblocks;
+vector<Word> dictionaryWords;
 int first_word = 0; 
 int activeword = 0;
 const int jumplen = 10;
 
 int iswordchar (char ch);
-int pushwords ();
-int pullwords ();
+int writeDict ();
+int readDictWords ();
 void dopunct (string block, string& start, string& word, string& end);
 int refresh_tt (void);
 int fixori (void);
@@ -75,7 +75,7 @@ int main_loop () {
 		switch(inpch)
 		{ 
 			case 'x':
-                if (WORD_BUFFER_SIZE < runtimeWords.size() - 5) WORD_BUFFER_SIZE+=5;
+                if (WORD_BUFFER_SIZE < dictionaryWords.size() - 5) WORD_BUFFER_SIZE+=5;
                 break;
 			case 'z':
                 if (WORD_BUFFER_SIZE >= 5) WORD_BUFFER_SIZE-=5;
@@ -88,7 +88,7 @@ int main_loop () {
 				}
 				break;
 			case 'l':
-				if (activeword < blocks.size() - 1)
+				if (activeword < textstrblocks.size() - 1)
 				{
 					activeword++;
 					fixori();
@@ -101,15 +101,15 @@ int main_loop () {
 				break;
 			case 'j':
 				activeword += jumplen;
-				if (activeword >= blocks.size()) activeword = blocks.size() - 1;
+				if (activeword >= textstrblocks.size()) activeword = textstrblocks.size() - 1;
 				fixori();
 				break;
 			case '\n':
                 bool alreadyDefined = false;
 				// check if word is already defined
-				for (int word = 0; word < runtimeWords.size(); word++)
+				for (int word = 0; word < dictionaryWords.size(); word++)
 				{
-					if (runtimeWords.at(word).getword() == getword(blocks.at(activeword)))
+					if (dictionaryWords.at(word).getword() == getword(textstrblocks.at(activeword)))
 					{
                         alreadyDefined = true;
 						break;
@@ -117,7 +117,7 @@ int main_loop () {
 				}
 			
 
-				string block = blocks.at(activeword);
+				string block = textstrblocks.at(activeword);
 				string word = getword(block);
 				string definition; 
 				int grammar;
@@ -190,9 +190,8 @@ int main_loop () {
 }
 
 int main_init () {
-    // init word stuff
-	blocks = slurp (bookname);
-	pullwords ();
+    textstrblocks = slurp (bookname).tovector(); // initialize the string blocks from the text
+	readDictWords (); // initialize the dictionary from the dictionary file
 
     // init screen
 	// Create text window
@@ -210,7 +209,7 @@ int main_init () {
 }
 
 int choose_text () {
-	vector<string> fileoptions = gettexts(); // get the texts from the appropriate directory
+	vector<string> fileoptions = gettexts().tovector(); // get the texts from the appropriate directory
 	if (fileoptions.size() > 0)	{
 		echo ();
 		while ( !vector_contains(fileoptions, bookname) ) {
@@ -290,7 +289,7 @@ bool vector_contains (vector<T> vec, T thing)
 }
 
 // Update the dictionary file with the new words, after exec is done
-int pushwords()
+int writeDict()
 {
 	ofstream file;
 	// clear the file
@@ -302,9 +301,9 @@ int pushwords()
 	log.open("../log.txt", ios::app); // append mode
 	if (file.is_open() && log.is_open())
 	{
-		for (int id = 0; id < runtimeWords.size(); id++)
+		for (int id = 0; id < dictionaryWords.size(); id++)
 		{
-			Word temp = runtimeWords.at(id);
+			Word temp = dictionaryWords.at(id);
 
 			time_t current_time = chrono::system_clock::to_time_t(chrono::system_clock::now());
 			log << "Wrote \"" << temp.getword() << "\" to the dictionary. " << ctime(&current_time) << endl;
@@ -317,7 +316,7 @@ int pushwords()
 }
 
 // Get all the Words from the dictionary file on init
-int pullwords()
+int readDictWords()
 {
         int id = 0;
         string istring;
@@ -342,7 +341,7 @@ int pullwords()
                         start += len + 1;
                         temp.setfam (atoi( istring.substr(start).c_str() ));
 
-                        runtimeWords.push_back (temp);
+                        dictionaryWords.push_back (temp);
                         id++;
                 }
                 file.close();
@@ -429,7 +428,7 @@ int refresh_tt (void)
 	wrefresh (tt_box); 
 
 	string s, tt_word, e;
-	dopunct (blocks.at(activeword), s, tt_word, e); 
+	dopunct (textstrblocks.at(activeword), s, tt_word, e); 
 	
 	tt_word = "Selected: \"" + tt_word + "\"";
 	wmove (tt_window, 0, 1);
@@ -438,9 +437,9 @@ int refresh_tt (void)
 	
 	int defined = 0;
 	int tindex;
-	for (int word = 0; word < runtimeWords.size(); word++)
+	for (int word = 0; word < dictionaryWords.size(); word++)
 	{
-		if (runtimeWords.at(word).getword() == getword(blocks.at(activeword)))
+		if (dictionaryWords.at(word).getword() == getword(textstrblocks.at(activeword)))
 		{
 			defined = 1;
 			tindex = word;
@@ -454,7 +453,7 @@ int refresh_tt (void)
 	}
 	else 
 	{
-		Word temp = runtimeWords.at(tindex);
+		Word temp = dictionaryWords.at(tindex);
 		wprintw (tt_window, ("Word: " + temp.getword() + "\n").c_str());
 		wprintw (tt_window, ("Definition: " + temp.getdefinition() + "\n").c_str());
 		wprintw (tt_window, ("Grammatical Use: " + temp.getgrammar() + "\n").c_str());
@@ -480,12 +479,12 @@ int fixori (void)
 	return 0;
 }
 
-// is the word string defined in the runtimeWords vector?
+// is the word string defined in the dictionaryWords vector?
 int isdefinedword (string word)
 {
-	for (int i = 0; i < runtimeWords.size(); i++)
+	for (int i = 0; i < dictionaryWords.size(); i++)
 	{
-		if (runtimeWords.at(i).getword() == word) return 1;
+		if (dictionaryWords.at(i).getword() == word) return 1;
 	}
 	return 0;
 }
@@ -498,9 +497,9 @@ int print_words (void)
 	wmove (text_window, 0, 0); wrefresh (text_window);
 	for (int i = first_word; i < first_word + WORD_BUFFER_SIZE; i++)
 	{
-		if (i > blocks.size() - 1) break;
+		if (i > textstrblocks.size() - 1) break;
 
-		string block = blocks.at(i);
+		string block = textstrblocks.at(i);
 		string word, start, end;
 		dopunct (block, start, word, end);
 
@@ -608,7 +607,7 @@ void writeentry (Verb v) {
 // write Word to runtime entries and remove dupes if applicable
 void writeentry (Word w)
 {
-	if (!vector_contains(runtimeWords, w)) runtimeWords.push_back(w);
+	if (!vector_contains(dictionaryWords, w)) dictionaryWords.push_back(w);
 	werase (tt_window);
 	wprintw (tt_window, " Added the following entry:");
 	wprintw (tt_window, ("\n Word: " + w.getword() + "\n").c_str());
@@ -620,10 +619,10 @@ void writeentry (Word w)
 	wgetch(tt_window); // Wait
 }
 
-// get "activeword" as a Word from runtimeWords
+// get "activeword" as a Word from dictionaryWords
 Word getactiveword (string word)
 {
-	for (Word w : runtimeWords)
+	for (Word w : dictionaryWords)
 	{
 		if (w == word)
 		{
@@ -639,7 +638,7 @@ int end_deinit() {
     // End exec
 	clear ();
 	printw ("Saving dictionary...\n");
-	pushwords ();
+	writeDict ();
 	printw ("Dictionary saved.\n");
 	printw ("Execution terminated. Press any key to continue...");
 	refresh ();

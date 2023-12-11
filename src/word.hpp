@@ -1,12 +1,13 @@
 #ifndef WORD_HPP
 #define WORD_HPP
+#include <iostream>
 #include <string>
 #include <vector>
 
 using namespace std;
 
-vector<string> fvec = {"New", "Hard", "Medium", "Easy", "Mastered"};
-vector<string> gvec = {"noun", "verb", "adverb", "article", "adjective", "other"};
+const vector<string> fvec = {"New", "Hard", "Medium", "Easy", "Mastered"};
+const vector<string> gvec = {"noun", "verb", "adverb", "article", "adjective", "other"};
 
 class Word
 {
@@ -16,30 +17,31 @@ class Word
 			setWord ("Undefined", "Undefined", -1, 0);
 		}
 
-		Word (string w, string d, int g)
+		Word (string word, string definition, int grammar)
 		{
-			setWord (w, d, g);
+			setWord (word, definition, grammar);
+            this->familiarity = 0;
 		}
 
-		Word (string w, string d, int g, int f)
+		Word (string word, string definition, int grammar, int familiarity)
 		{
-			setWord (w, d, g, f);
+			setWord (word, definition, grammar, familiarity);
 		}
 
 
-		void setWord (string w, string d, int g)
+		void setWord (string word, string definition, int grammar)
 		{			
-			word = w;
-			definition = d;
-			grammar = g;
+			this->word = word;
+			this->definition = definition;
+			this->grammar = grammar;
 		}
 
-		void setWord (string w, string d, int g, int f)
+		void setWord (string word, string definition, int grammar, int familiarity)
 		{			
-			word = w;
-			definition = d;
-			grammar = g;
-			familiarity = f;
+			this->word = word;
+			this->definition = definition;
+			this->grammar = grammar;
+			this->familiarity = familiarity;
 		}
 
 
@@ -62,6 +64,7 @@ class Word
 	
 		string getfamiliarity () const
 		{
+			if (familiarity < 0) return "Undefined";
 			return fvec[familiarity];
 		}
 
@@ -76,26 +79,26 @@ class Word
 			return definition;
 		}
 
-		void setword (string w)
+		void setword (string word)
 		{
-			word = w;
+			this->word = word;
 		}
 
-		void setdef (string def)
+		void setdef (string definition)
 		{
-			definition = def;
+			this->definition = definition;
 		}
 
-		void setgrammar (int g)
+		void setgrammar (int grammar)
 		{
-			if (grammar > gvec.size() -1 ) grammar = gvec.size() -1;
-			grammar = g;
+			if (this->grammar > gvec.size() -1 ) this->grammar = gvec.size() -1;
+			this->grammar = grammar;
 		}
 
-		void setfam (int f)
+		void setfam (int familiarity)
 		{
-			if (familiarity > fvec.size() -1 ) familiarity = fvec.size() -1;
-			familiarity = f;
+			if (this->familiarity > fvec.size() -1 ) this->familiarity = fvec.size() -1;
+			this->familiarity = familiarity;
 		}
 		
 		// only care about title (word) of entry
@@ -111,13 +114,21 @@ class Word
 			return word == other;
 		}
 
+        std::string getinfo () const {
+            return "Verb: " + word + 
+                ", Definition: " + definition + 
+                ", Grammar: " + this->getgrammar() + 
+                ", Familiarity: " + this->getfamiliarity();
+        }
+
+
         // Defines behavior for printing a word
         friend std::ostream& operator<<(std::ostream& os, const Word& word) { 
-            return os << word.getdefinition();
+            return os << "Word: " << word.getword();
         }
         
 
-	private:
+	protected:
 		string word;
 		string definition;
 		int grammar;

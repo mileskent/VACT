@@ -6,39 +6,40 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include "sllist.hpp"
 
 using namespace std;
 const string filedir = "../res/files/";
 
 
-vector<string> slurp (string file)
+SLList<string> slurp (string file)
 {
 	ifstream ifs (filedir + file, ifstream::in);
-	vector<string> v;
-	string block;
+	SLList<string> list;
+	string wordblock;
 	if (ifs.is_open()) 
 	{
-		while (ifs >> block) 
+		while (ifs >> wordblock) 
 		{
-			v.push_back (block);
+			list.push_back_node (wordblock);
 		}
 		ifs.close();
 	}
-	else v = slurp ("default.txt");
-	return v;
+	else list = slurp ("default.txt");
+	return list;
 }
 
-vector<string> getdir (string relpath)
+SLList<string> getdir (string relpath)
 {
-	vector<string> texts;
-	for (auto & file : filesystem::directory_iterator{ relpath })  //loop through the current folder
+	SLList<string> texts;
+	for (const auto& file : filesystem::directory_iterator{ relpath })  //loop through the current folder
     {
-		texts.push_back ( file.path().filename() );
+		texts.push_back_node ( file.path().filename() );
     }
 	return texts;
 }
 
-vector<string> gettexts ()
+SLList<string> gettexts ()
 {
 	return getdir (filedir);
 }

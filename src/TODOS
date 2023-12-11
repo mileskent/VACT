@@ -1,6 +1,5 @@
-Change runtime vector to have unique_ptr Word
-Implement Verb.hpp with project
-Implement LL with project -> Needs to be doubly-linked if it can replace the runtime Vector
+Having verb descend from word and then trying to store them in the same vector is 
+really annoying and will be way more work than just having word have optional fields
 Auto WORD_BUFFER_SIZE
 word wrapping
 Add multiple languages

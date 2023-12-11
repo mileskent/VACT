@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #ifndef SLLIST_HPP
 #define SLLIST_HPP
@@ -61,6 +62,16 @@ public:
             std::cout << head->data << std::endl;
             showlist(head->next);
         }
+    }
+
+    std::vector<T> tovector() {
+        std::vector<T> toreturn;
+        Node<T>* current = head;
+        while (current != nullptr) {
+            toreturn.push_back(current->data);
+            current = current->next;
+        }
+        return toreturn;
     }
 
 private:
