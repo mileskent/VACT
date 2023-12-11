@@ -1,80 +1,71 @@
 #include <iostream>
-#include "word.hpp"
 
 #ifndef SLLIST_HPP
 #define SLLIST_HPP
 
+template <typename T>
 struct Node {
-    Word word;
+    T data;
     Node* next;
 };
 
+template <typename T>
 class SLList {
 public:
-    SLList () {
-        head = nullptr;
-        tail = nullptr;
-    }
+    SLList() : head(nullptr), tail(nullptr) {}
 
-    ~SLList () {
-        Node* current = head;
+    ~SLList() {
+        Node<T>* current = head;
         while (current != nullptr) {
-            Node* next = current->next;
-//            std::cout << "Deleted " << current->word.getdefinition() << std::endl;
+            Node<T>* next = current->next;
             delete current;
             current = next;
         }
     }
 
-    Node* get_head () { return head; }
+    Node<T>* get_head() { return head; }
 
-    // You use this by going until 
-    // Node->next is the thing you want to delete
-    void delete_node (Node* prevNode) {
-        Node* todelete;
-        todelete = prevNode->next;
+    void delete_node(Node<T>* prevNode) {
+        Node<T>* todelete = prevNode->next;
         prevNode->next = todelete->next;
         delete todelete;
     }
 
-    bool contains (Word word) {
-        Node* current = head;
+    bool contains(T data) {
+        Node<T>* current = head;
         while (current != nullptr) {
-            if (current->word == word) return true; 
+            if (current->data == data) return true;
             current = current->next;
         }
         return false;
     }
 
-    void push_back_node (Word word)
-    {
-        Node* topushback = new Node;
-        topushback->word = word;
+    void push_back_node(T data) {
+        Node<T>* topushback = new Node<T>;
+        topushback->data = data;
         topushback->next = nullptr;
 
         if (head == nullptr) {
             head = topushback;
             tail = topushback;
-        }
-        else {
+        } else {
             tail->next = topushback;
             tail = tail->next;
         }
     }
 
-    static void showlist (Node* head) {
+    static void showlist(Node<T>* head) {
         if (head == nullptr) {
             std::cout << "Empty Node" << std::endl;
-        }
-        else {
-            std::cout << head->word << std::endl;
-            showlist (head->next);
+        } else {
+            std::cout << head->data << std::endl;
+            showlist(head->next);
         }
     }
 
 private:
-   Node* head;
-   Node* tail;
+    Node<T>* head;
+    Node<T>* tail;
 };
 
 #endif

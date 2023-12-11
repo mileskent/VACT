@@ -3,8 +3,10 @@
 #include <cstring>
 #include <chrono>
 #include <ctime>  
+#include <memory>
 #include "filereader.hpp"
 #include "word.hpp"
+#include "verb.hpp"
 
 using namespace std;
 
@@ -15,12 +17,12 @@ WINDOW * text_window;
 WINDOW * tt_box;
 WINDOW * tt_window;
 string bookname = "";
-int first_word = 0; 
 char inpch;
-const int WORD_CAP = 200; 
+int WORD_BUFFER_SIZE = 500; 
 const double TWPER = 0.7;
 vector<string> blocks;
 vector<Word> runtimeWords;
+int first_word = 0; 
 int activeword = 0;
 const int jumplen = 10;
 
@@ -32,19 +34,21 @@ int refresh_tt (void);
 int fixori (void);
 int isdefinedword (string word);
 int print_words (void);
-bool vechas (vector<string> vec, string str);
 string getword (string block);
 string tolower (string str);
 void dodef (string& definition);
 void dogram (int& grammar);
 void dofam (int& familiarity);
-void writeentry (string word, string definition, int grammar, int familiarity);
+void writeentry (Word w);
 Word getactiveword (string word);
 int ncurses_init();
 int choose_text();
 int main_init();
 int main_loop();
 int end_deinit();
+
+template <class T>
+bool vector_contains (vector<T> vec, T thing);
 
 struct Pos
 {
@@ -66,11 +70,16 @@ int main (void)
 
 int main_loop () {
     // main loop
-	int d = 0;
 	while ((inpch = wgetch(text_window)) != 'q')
 	{ 
 		switch(inpch)
 		{ 
+			case 'x':
+                if (WORD_BUFFER_SIZE < runtimeWords.size() - 5) WORD_BUFFER_SIZE+=5;
+                break;
+			case 'z':
+                if (WORD_BUFFER_SIZE >= 5) WORD_BUFFER_SIZE-=5;
+                break;
 			case 'h':
 				if (activeword >= 1)
 				{
@@ -96,12 +105,13 @@ int main_loop () {
 				fixori();
 				break;
 			case '\n':
+                bool alreadyDefined = false;
 				// check if word is already defined
 				for (int word = 0; word < runtimeWords.size(); word++)
 				{
 					if (runtimeWords.at(word).getword() == getword(blocks.at(activeword)))
 					{
-						d = 1;
+                        alreadyDefined = true;
 						break;
 					}
 				}
@@ -112,8 +122,7 @@ int main_loop () {
 				string definition; 
 				int grammar;
 				
-				// already defined
-				if (d)
+				if (alreadyDefined)
 				{
 					int familiarity;
 
@@ -133,20 +142,23 @@ int main_loop () {
 					if (inpch == '1')
 					{
 						dodef (definition);
-						writeentry (temp.getword(), definition, temp.getigrammar(), temp.getifamiliarity());
+                        temp.setdef (definition);
+						writeentry (temp);
 					}
 					// grammar
 					else if (inpch == '2')
 					{
 						dogram (grammar);
-						writeentry (temp.getword(), temp.getdefinition(), grammar, temp.getifamiliarity());
+                        temp.setgrammar (grammar);
+						writeentry (temp);
 					}
 
 					// fam
 					else if (inpch == '3')
 					{
 						dofam (familiarity);
-						writeentry (temp.getword(), temp.getdefinition(), temp.getigrammar(), familiarity);
+                        temp.setfam (familiarity);
+						writeentry (temp);
 					}
 				}
 				// not defined
@@ -163,7 +175,7 @@ int main_loop () {
 						werase (tt_window);
 						dodef (definition);
 						dogram (grammar);
-						writeentry (word, definition, grammar, 0);	
+						writeentry (Word(word, definition, grammar, 0));
 					}
 
 				}
@@ -201,7 +213,7 @@ int choose_text () {
 	vector<string> fileoptions = gettexts(); // get the texts from the appropriate directory
 	if (fileoptions.size() > 0)	{
 		echo ();
-		while ( !vechas(fileoptions, bookname) ) {
+		while ( !vector_contains(fileoptions, bookname) ) {
 			bookname = "";
 			printw ("Enter the name of the file you want.\n");
 			for (string file : fileoptions)	{
@@ -225,7 +237,7 @@ int choose_text () {
 			refresh (); // can still see the text even when I don't call this for some reason; here for safety
 			clear();
 
-			if ( !vechas(fileoptions, bookname) ) {
+			if ( !vector_contains(fileoptions, bookname) ) {
                 attron(COLOR_PAIR(REDFGPAIR));
 				printw ( ("You entered \"" + bookname + "\". File does not exist. Please try again.\n").c_str() );
                 attroff(COLOR_PAIR(REDFGPAIR));
@@ -266,12 +278,13 @@ int iswordchar (char ch)
 	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '-' || (ch >= '0' && ch <= '9');
 }
 
-// Does the vector have string str?
-bool vechas (vector<string> vec, string str)
+// Does the vector have the thing?
+template <typename T>
+bool vector_contains (vector<T> vec, T thing)
 {
 	for (int i = 0; i < vec.size(); i++)
 	{
-		if (vec.at(i) == str) return true;
+		if (vec.at(i) == thing) return true;
 	}
 	return false;
 }
@@ -339,6 +352,7 @@ int pullwords()
 }
 
 // tolower an entire string
+// Note: Works with stuff like german esset as the letter just stays the same
 string tolower (string str)
 {
 	for (int i = 0; i < str.length(); i++)
@@ -433,7 +447,7 @@ int refresh_tt (void)
 			break;
 		}
 	}
-	getyx (tt_window, cursor.y, cursor.x);
+	// getyx (tt_window, cursor.y, cursor.x);
 	if (!defined)
 	{
 		wprintw (tt_window, "This word is undefined.");
@@ -441,10 +455,10 @@ int refresh_tt (void)
 	else 
 	{
 		Word temp = runtimeWords.at(tindex);
-		mvwprintw (tt_window, cursor.y++ + 1, 1, ("Word: " + temp.getword()).c_str());
-		mvwprintw (tt_window, cursor.y++ + 1, 1, ("Definition: " + temp.getdefinition()).c_str());
-		mvwprintw (tt_window, cursor.y++ + 1, 1, ("Grammatical Use: " + temp.getgrammar()).c_str());
-		mvwprintw (tt_window, cursor.y++ + 1, 1, ("Familiarity: " + temp.getfamiliarity()).c_str());
+		wprintw (tt_window, ("Word: " + temp.getword() + "\n").c_str());
+		wprintw (tt_window, ("Definition: " + temp.getdefinition() + "\n").c_str());
+		wprintw (tt_window, ("Grammatical Use: " + temp.getgrammar() + "\n").c_str());
+		wprintw (tt_window, ("Familiarity: " + temp.getfamiliarity() + "\n").c_str());
 	}
 	wprintw (tt_window, "\n <Enter> to modify.");
 	
@@ -454,13 +468,13 @@ int refresh_tt (void)
 
 }
 
-// fix the orientation of the text window; we want WORD_CAP words to be shown 
+// fix the orientation of the text window; we want WORD_BUFFER_SIZE words to be shown 
 int fixori (void)
 {
-	if (activeword >= WORD_CAP + first_word) first_word = activeword;
+	if (activeword >= WORD_BUFFER_SIZE + first_word) first_word = activeword;
 	else if (activeword < first_word)
 	{
-		first_word = activeword - WORD_CAP;
+		first_word = activeword - WORD_BUFFER_SIZE;
 		if (first_word < 0) first_word = 0;
 	}
 	return 0;
@@ -482,7 +496,7 @@ int print_words (void)
 
 	// We have to print word by word
 	wmove (text_window, 0, 0); wrefresh (text_window);
-	for (int i = first_word; i < first_word + WORD_CAP; i++)
+	for (int i = first_word; i < first_word + WORD_BUFFER_SIZE; i++)
 	{
 		if (i > blocks.size() - 1) break;
 
@@ -586,29 +600,21 @@ void dofam (int & familiarity)
 	familiarity = inpch - 1; 
 }
 
-// write Word to runtime entries and remove dupes if applicable
-void writeentry (string word, string definition, int grammar, int familiarity)
-{
-	// now write it to vector -> this scen will have diff behavior if word already defined
-	Word temp (word, definition, grammar, familiarity);
+/*
+void writeentry (Verb v) {
+}
+*/
 
-	// replace duplicates if applicable
-	int dupes = 0;
-	for (int word = 0; word < runtimeWords.size(); word++)
-	{
-		if (runtimeWords.at(word).getword() == temp.getword())
-		{
-			runtimeWords.at(word) = temp;
-			dupes = 1;
-		}
-	}
-	if (dupes == 0)	runtimeWords.push_back(temp);
+// write Word to runtime entries and remove dupes if applicable
+void writeentry (Word w)
+{
+	if (!vector_contains(runtimeWords, w)) runtimeWords.push_back(w);
 	werase (tt_window);
 	wprintw (tt_window, " Added the following entry:");
-	wprintw (tt_window, ("\n Word: " + word + "\n").c_str());
-	wprintw (tt_window, ("Definition: " + definition + "\n").c_str());
-	wprintw (tt_window, ("Grammatical Use: " + temp.getgrammar() + "\n").c_str());
-	wprintw (tt_window, ("Familiarity: " + temp.getfamiliarity() + "\n").c_str());
+	wprintw (tt_window, ("\n Word: " + w.getword() + "\n").c_str());
+	wprintw (tt_window, ("Definition: " + w.getdefinition() + "\n").c_str());
+	wprintw (tt_window, ("Grammatical Use: " + w.getgrammar() + "\n").c_str());
+	wprintw (tt_window, ("Familiarity: " + w.getfamiliarity() + "\n").c_str());
 
 
 	wgetch(tt_window); // Wait
