@@ -111,11 +111,18 @@ class Word
 			return word == other;
 		}
 
+        // Defines behavior for printing a word
+        friend std::ostream& operator<<(std::ostream& os, const Word& word) { 
+            return os << word.getdefinition();
+        }
+        
+
 	private:
 		string word;
 		string definition;
 		int grammar;
 		int familiarity;
 };
+
 
 #endif
