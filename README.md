@@ -17,9 +17,15 @@ To build this project, you will need g++ and ncurses.h
 ```
 sudo apt install g++ libncurses-dev
 ```
+
 **Arch**
 ```
 sudo pacman -S ncurses gcc
+```
+
+**MacOS**
+```
+brew install ncurses g++
 ```
 
 ## Building & Running
