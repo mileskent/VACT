@@ -1,4 +1,4 @@
-# Vocab Acquisition & Comprehension Tool (CLI) - CIS 278
+# Vocab Acquisition & Comprehension Tool (VACT) - CIS 278
 
 ## Installation
 ```
