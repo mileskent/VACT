@@ -11,6 +11,8 @@
 using namespace std;
 
 #define REDFGPAIR 1
+#define YELLOWFGPAIR 2
+
 WINDOW * text_box;
 WINDOW * text_window;
 WINDOW * tt_box;
@@ -236,6 +238,12 @@ int choose_text () {
 			clear();
 
 			if ( !vector_contains(fileoptions, bookname) ) {
+                if (tolower(bookname) == "quit") {
+                    noecho(); 
+                    refresh();
+                    endwin();
+                    exit (1);
+                }
                 attron(COLOR_PAIR(REDFGPAIR));
 				printw ( ("You entered \"" + bookname + "\". File does not exist. Please try again.\n").c_str() );
                 attroff(COLOR_PAIR(REDFGPAIR));
@@ -262,10 +270,12 @@ int ncurses_init () {
 	{ 
 		endwin();
 		cout << "Your terminal does not support color! D:" << endl;
+        exit(1);
 		return 1;
 	}
 	start_color();				// color
     init_pair(REDFGPAIR, COLOR_RED, COLOR_BLACK);
+    init_pair(YELLOWFGPAIR, COLOR_YELLOW, COLOR_BLACK);
 	noecho (); // hide input
     return 0;
 }
@@ -421,9 +431,11 @@ int refresh_tt (void)
 
 	// tt_window
 	werase (tt_window);
+    wattron(tt_box, COLOR_PAIR(YELLOWFGPAIR));
 	box (tt_box, 0, 0); 
 	char tt_title[] = "Tooltip";	
 	mvwprintw (tt_box, 0, (int)(COLS * (1 - TWPER) / 2) - strlen(tt_title) / 2, tt_title); 
+    wattroff(tt_box, COLOR_PAIR(YELLOWFGPAIR));
 	wrefresh (tt_box); 
 
 	string s, tt_word, e;
@@ -542,10 +554,13 @@ int print_words (void)
         }
 	}
 
+    wattron(text_box, COLOR_PAIR(YELLOWFGPAIR));
 	box (text_box, 0, 0);		// Draw a box border for the window
 	char text_title[] = "Text";
 	mvwprintw (text_box, 0, (int)(COLS * TWPER / 2) - strlen(text_title) / 2, text_title); // Title
+    wattroff(text_box, COLOR_PAIR(YELLOWFGPAIR));
 	wrefresh (text_box);
+
 	wrefresh (text_window);
 
 	return 0;
