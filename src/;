@@ -8,6 +8,7 @@ public:
     
     // for each "block" (text in between spaces) get the word and the punctuation on the start and end, and isolate them
     void process (std::string & start, std::string & word, std::string & end) {
+    void dopunct (std::string & start, std::string & word, std::string & end) {
         // Handle punctuation	
         start = ""; end = " ";
         int wordch1, wordchlast;
@@ -44,16 +45,8 @@ public:
             end = wordblock.substr(wordchlast) + " ";
         } 
     }
-
-    // return the word std::string from ^
-    std::string getword ()
-    {
-        std::string s, w, e;
-        process (s, w, e);
-        w = tolower(w);
-        return w;
     }
-    
+// HELPER
     // tolower an entire std::string
     // Note: Works with stuff like german esset as the letter just stays the same
     // helper, not dependent on member variables
@@ -76,6 +69,14 @@ public:
     }
 
 
+    // return the word std::string from dopunct ^
+    std::string getword ()
+    {
+        std::string s, w, e;
+        dopunct (s, w, e);
+        w = tolower(w);
+        return w;
+    }
 
 protected:
     std::string wordblock; 

@@ -1,15 +1,14 @@
 #ifndef WORDCOLORIZER_HPP
 #define WORDCOLORIZER_HPP
 #include "wordprocessor.hpp"
+#include <ncurses.h>
 #include <string>
 
 class WordColorizer : public WordProcessor {
 public:
-    std::string process () {
+    void process () {
         // do colorizing
-        return wordblock;
     }
-    ~WordColorizer() {};
 };
 
 #endif

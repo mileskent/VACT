@@ -5,8 +5,10 @@
 #include <ctime>  
 #include "filereader.hpp"
 #include "word.hpp"
-#include "verb.hpp"
 #include "sllist.hpp"
+#include "wordprocessor.hpp"
+#include "wordwrapper.hpp"
+#include "wordcolorizer.hpp"
 
 using namespace std;
 
@@ -27,16 +29,12 @@ int first_word = 0;
 int activeword = 0;
 const int jumplen = 10;
 
-int iswordchar (char ch);
 int writeDict ();
 int readDictWords ();
-void dopunct (string block, string& start, string& word, string& end);
 int refresh_tt (void);
 int fixori (void);
 int isdefinedword (string word);
 int print_words (void);
-string getword (string block);
-string tolower (string str);
 void dodef (string& definition);
 void dogram (int& grammar);
 void dofam (int& familiarity);
@@ -110,7 +108,7 @@ int main_loop () {
 				// check if word is already defined
 				for (int word = 0; word < dictionaryWords.size(); word++)
 				{
-					if (dictionaryWords.at(word).getword() == getword(textstrblocks.at(activeword)))
+					if (dictionaryWords.at(word).getword() == WordProcessor(textstrblocks.at(activeword)).getword())
 					{
                         alreadyDefined = true;
 						break;
@@ -119,7 +117,7 @@ int main_loop () {
 			
 
 				string block = textstrblocks.at(activeword);
-				string word = getword(block);
+				string word = WordProcessor(block).getword();
 				string definition; 
 				int grammar;
 				
@@ -238,7 +236,7 @@ int choose_text () {
 			clear();
 
 			if ( !vector_contains(fileoptions, bookname) ) {
-                if (tolower(bookname) == "quit") {
+                if (WordProcessor::tolower(bookname) == "quit") {
                     noecho(); 
                     refresh();
                     endwin();
@@ -280,11 +278,6 @@ int ncurses_init () {
     return 0;
 }
 
-// Is the character one we want in our Word's word?
-int iswordchar (char ch)
-{
-	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '-' || (ch >= '0' && ch <= '9');
-}
 
 // Does the vector have the thing?
 template <typename T>
@@ -359,72 +352,6 @@ int readDictWords()
         return 0;
 }
 
-// tolower an entire string
-// Note: Works with stuff like german esset as the letter just stays the same
-string tolower (string str)
-{
-	for (int i = 0; i < str.length(); i++)
-	{
-		if (str.at(i) >= 'A' && str.at(i) <= 'Z')
-		{
-			str[i] += 'a' - 'A';
-		}
-	}
-	return str;
-}
-
-// for each "block" (text in between spaces) get the word and the punctuation on the start and end, and isolate them
-void dopunct (string block, string & start, string & word, string & end)
-{
-	// Handle punctuation	
-
-	start = ""; end = " ";
-	int wordch1, wordchlast;
-	for (int i = 0; i < block.length(); i++)
-	{
-		if (iswordchar(block.at(i)))
-		{
-			word += block.at(i);
-		}
-	}
-
-	for (int i = 0; i < block.length(); i++)
-	{
-		if (iswordchar(block.at(i)))
-		{
-			wordch1 = i;
-			break;
-		}
-	}
-	start = block.substr(0, wordch1);
-
-	for (int i = block.length() - 1; i >= 0; i--)
-	{
-		if (iswordchar(block.at(i)))
-		{
-			wordchlast = i + 1;
-			break;
-		}
-	}
-	// Idk why this was causing coredump but it was so I wrapped it
-	// end = block.substr(wordchlast) + " ";
-	if (wordchlast >= 0 && wordchlast < block.length()) 
-	{
-		end = block.substr(wordchlast) + " ";
-	} 
-
-
-}
-
-// return the word string from dopunct ^
-string getword (string block)
-{
-	string s, w, e;
-	dopunct (block, s, w, e);
-	w = tolower(w);
-	return w;
-}
-
 // the basic tooltip window
 int refresh_tt (void)
 {
@@ -439,7 +366,7 @@ int refresh_tt (void)
 	wrefresh (tt_box); 
 
 	string s, tt_word, e;
-	dopunct (textstrblocks.at(activeword), s, tt_word, e); 
+	WordProcessor (textstrblocks.at(activeword)).process(s, tt_word, e); 
 	
 	tt_word = "Selected: \"" + tt_word + "\"";
 	wmove (tt_window, 0, 1);
@@ -450,7 +377,7 @@ int refresh_tt (void)
 	int tindex;
 	for (int word = 0; word < dictionaryWords.size(); word++)
 	{
-		if (dictionaryWords.at(word).getword() == getword(textstrblocks.at(activeword)))
+		if (dictionaryWords.at(word).getword() == WordProcessor(textstrblocks.at(activeword)).getword())
 		{
 			defined = 1;
 			tindex = word;
@@ -504,6 +431,7 @@ int isdefinedword (string word)
 int print_words (void)
 {
 
+// PRINTING
 	// We have to print word by word
 	wmove (text_window, 0, 0); wrefresh (text_window);
 	for (int i = first_word; i < first_word + WORD_BUFFER_SIZE; i++)
@@ -512,12 +440,12 @@ int print_words (void)
 
 		string block = textstrblocks.at(i);
 		string word, start, end;
-		dopunct (block, start, word, end);
+		WordProcessor(block).process(start, word, end);
 
-				// print nonalphanum start
-		wprintw (text_window, start.c_str());
-		
-		if (!isdefinedword(tolower(word))) // to lower bc we want "Snake" and "snake" and "SNAKE" to have the same def
+    // COLORIZER
+		wprintw (text_window, start.c_str());   // print nonalphanum start
+
+		if (!isdefinedword(WordProcessor::tolower(word))) // to lower bc we want "Snake" and "snake" and "SNAKE" to have the same def
 		{
 			wattron (text_window, A_UNDERLINE);
 		}
@@ -536,7 +464,7 @@ int print_words (void)
 			wprintw (text_window, word.c_str());
 		}
 		
-		if (!isdefinedword(word))
+		if (!isdefinedword(WordProcessor::tolower(word)))
 		{
 			wattroff (text_window, A_UNDERLINE);
 		}
@@ -544,7 +472,8 @@ int print_words (void)
 		// print nonalphanum end
 		wprintw (text_window, end.c_str());
 
-        // wrapping -> if adding the next word will go past COL XXX, then also do a newline
+    // WRAPPING
+        // if adding the next word will go past COL XXX, then also do a newline
         // i.e. if the length of space + the next block + the current x is >= COL XXX then newline
 	    // text_window = newwin((int)(LINES) - 2, (int)(COLS * TWPER) - 2, 1, 1);	
 		getyx (text_window, cursor.y, cursor.x);
