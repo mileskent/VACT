@@ -1,5 +1,5 @@
-Having verb descend from word and then trying to store them in the same vector is 
-really annoying and will be way more work than just having word have optional fields
+ a base class WordProcessor, and then descendants WordFormatter which will do line wrapping and buffer length and WordColorizer which will do color and italics
+
 Auto WORD_BUFFER_SIZE
 word wrapping
 Add multiple languages

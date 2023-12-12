@@ -128,7 +128,7 @@ class Word
         }
         
 
-	protected:
+	private:
 		string word;
 		string definition;
 		int grammar;

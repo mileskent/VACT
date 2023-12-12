@@ -29,15 +29,21 @@ brew install ncurses g++
 ```
 
 ## Building & Running
-To build the project, cd into VACT/src and run the following if on Unix
-```./build.sh```
+To build the project, cd into ```VACT/src``` and run the following if on Unix
+```
+./build.sh
+```
 The following may be neccessary first
-```chmod +x *.sh```
+```
+chmod +x *.sh
+```
 If on Windows, run the contents of the bash script. It can also be copied into a batch file.
 
-In VACT/bin Run the project with
+In ```VACT/bin``` Run the project with
 
-```./main```
+```
+./main
+```
 
 
 ## Hotkeys

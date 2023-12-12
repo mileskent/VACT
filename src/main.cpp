@@ -3,7 +3,6 @@
 #include <cstring>
 #include <chrono>
 #include <ctime>  
-#include <memory> // std::unique_ptr
 #include "filereader.hpp"
 #include "word.hpp"
 #include "verb.hpp"
@@ -508,16 +507,17 @@ int print_words (void)
 		
 		if (!isdefinedword(tolower(word))) // to lower bc we want "Snake" and "snake" and "SNAKE" to have the same def
 		{
-            wattron(text_window, COLOR_PAIR(REDFGPAIR));
 			wattron (text_window, A_UNDERLINE);
 		}
 
 		// differentiate word if active word
 		if (i == activeword)
 		{
+            wattron(text_window, COLOR_PAIR(REDFGPAIR));
 			wattron(text_window, A_BOLD | A_BLINK | A_ITALIC);
 			wprintw (text_window, word.c_str());
 			wattroff(text_window, A_BOLD | A_BLINK | A_ITALIC);	
+            wattroff(text_window, COLOR_PAIR(REDFGPAIR));
 		}
 		else 
 		{
@@ -527,12 +527,19 @@ int print_words (void)
 		if (!isdefinedword(word))
 		{
 			wattroff (text_window, A_UNDERLINE);
-            wattroff(text_window, COLOR_PAIR(REDFGPAIR));
 		}
-
 
 		// print nonalphanum end
 		wprintw (text_window, end.c_str());
+
+        // wrapping -> if adding the next word will go past COL XXX, then also do a newline
+        // i.e. if the length of space + the next block + the current x is >= COL XXX then newline
+	    // text_window = newwin((int)(LINES) - 2, (int)(COLS * TWPER) - 2, 1, 1);	
+		getyx (text_window, cursor.y, cursor.x);
+        if ( (i < textstrblocks.size() - 1) && // prevents OOB Error
+                (textstrblocks.at(i + 1).length() + cursor.x) >= ((int)(COLS * TWPER) - 2) ) { 
+            wprintw (text_window, "\n");
+        }
 	}
 
 	box (text_box, 0, 0);		// Draw a box border for the window
