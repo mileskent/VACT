@@ -215,7 +215,7 @@ int choose_text () {
 		echo ();
 		while ( !vector_contains(fileoptions, bookname) ) {
 			bookname = "";
-			printw ("Enter the name of the file you want.\n");
+			printw ("Enter the name of the file you want. ('quit' to quit)\n");
 			for (string file : fileoptions)	{
 				printw ((" > " + file + "\n").c_str());
 			}
