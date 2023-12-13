@@ -72,7 +72,7 @@ int main_loop () {
 		switch(inpch)
 		{ 
 			case 'x':
-                if (WORD_BUFFER_SIZE < dictionaryWords.size() - 5) WORD_BUFFER_SIZE+=5;
+                if (WORD_BUFFER_SIZE <= textstrblocks.size() - 5) WORD_BUFFER_SIZE+=5;
                 break;
 			case 'z':
                 if (WORD_BUFFER_SIZE >= 5) WORD_BUFFER_SIZE-=5;
@@ -190,6 +190,8 @@ int main_loop () {
 int main_init () {
     textstrblocks = getblocks(bookname).tovector(); // initialize the string blocks from the text
 	dictionaryWords = readDictWords().tovector(); // initialize the dictionary from the dictionary file
+                                                  
+    if (WORD_BUFFER_SIZE > textstrblocks.size()) WORD_BUFFER_SIZE = textstrblocks.size(); // if we dont do this then anything smaller than the default value will feel like x and z isn't doing anything
 
     // init screen
 	// Create text window
