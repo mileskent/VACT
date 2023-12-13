@@ -27,7 +27,7 @@ int first_word = 0;
 int activeword = 0;
 
 int writeDict ();
-int readDictWords ();
+SLList<Word> readDictWords ();
 int refresh_tt (void);
 int fixori (void);
 int isdefinedword (string word);
@@ -187,8 +187,8 @@ int main_loop () {
 }
 
 int main_init () {
-    textstrblocks = slurp (bookname).tovector(); // initialize the string blocks from the text
-	readDictWords (); // initialize the dictionary from the dictionary file
+    textstrblocks = getblocks(bookname).tovector(); // initialize the string blocks from the text
+	dictionaryWords = readDictWords().tovector(); // initialize the dictionary from the dictionary file
 
     // init screen
 	// Create text window
@@ -316,38 +316,38 @@ int writeDict()
 }
 
 // Get all the Words from the dictionary file on init
-int readDictWords()
+SLList<Word> readDictWords()
 {
         int id = 0;
         string istring;
+        SLList<Word> list;
         ifstream file("../res/dictionary/dict.vact");
         if (file.is_open())
         {
-                while (getline(file, istring))
-                {
-                        Word temp;
-                        unsigned long start = 0;
-                        unsigned long len = istring.find_first_of(';');
-                        temp.setword (istring.substr(start, len));
+            while (getline(file, istring))
+            {
+                Word temp;
+                unsigned long start = 0;
+                unsigned long len = istring.find_first_of(';');
+                temp.setword (istring.substr(start, len));
 
-                        start += len + 1;
-                        len = istring.substr(start).find_first_of(';');
-                        temp.setdef (istring.substr(start, len));
+                start += len + 1;
+                len = istring.substr(start).find_first_of(';');
+                temp.setdef (istring.substr(start, len));
 
-					    start += len + 1;
-                        len = istring.substr(start).find_first_of(';');
-                        temp.setgrammar (atoi( istring.substr(start, len).c_str() ));
+                start += len + 1;
+                len = istring.substr(start).find_first_of(';');
+                temp.setgrammar (atoi( istring.substr(start, len).c_str() ));
 
-                        start += len + 1;
-                        temp.setfam (atoi( istring.substr(start).c_str() ));
+                start += len + 1;
+                temp.setfam (atoi( istring.substr(start).c_str() ));
 
-                        dictionaryWords.push_back (temp);
-                        id++;
-                }
-                file.close();
+                list.orderedinsert (temp); // alphabetize our dictionary
+                id++;
+            }
+            file.close();
         }
-        else return 1;
-        return 0;
+        return list;
 }
 
 // the basic tooltip window

@@ -32,15 +32,6 @@ public:
         delete todelete;
     }
 
-    bool contains(T data) {
-        Node<T>* current = head;
-        while (current != nullptr) {
-            if (current->data == data) return true;
-            current = current->next;
-        }
-        return false;
-    }
-
     void push_back_node(T data) {
         Node<T>* topushback = new Node<T>;
         topushback->data = data;
@@ -54,6 +45,44 @@ public:
             tail = tail->next;
         }
     }
+
+    void orderedinsert(T data) {
+        Node<T>* nodetoinsert = new Node<T>;
+        nodetoinsert->data = data;
+        nodetoinsert->next = nullptr;
+
+        if (head == nullptr) {
+            head = nodetoinsert;
+            tail = nodetoinsert;
+        } 
+        else if (data < head->data) {
+            nodetoinsert->next = head;
+            head = nodetoinsert;
+        }
+        else {
+            Node<T>* current = head;
+            Node<T>* prev = nullptr;
+
+            while (current != nullptr && data > current->data) {
+                prev = current;
+                current = current->next;
+            }
+
+            if (prev != nullptr) {
+                prev->next = nodetoinsert;
+            }
+            else {
+                head = nodetoinsert;
+            }
+
+            nodetoinsert->next = current;
+
+            if (current == nullptr) {
+                tail = nodetoinsert;
+            }
+        }
+    }
+
 
     static void showlist(Node<T>* head) {
         if (head == nullptr) {

@@ -1,5 +1,6 @@
 #ifndef WORD_HPP
 #define WORD_HPP
+#include "wordhelper.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -106,12 +107,32 @@ class Word
 		// no situation where having two entries with same title and diff def is good
 		bool operator==(const Word & other) const 
 		{
-			return word == other.word;
+			return WordHelper::tolower(word) == WordHelper::tolower(other.getword());
 		}
 		
 		bool operator==(const string & other) const 
 		{
-			return word == other;
+			return WordHelper::tolower(word) == other;
+		}
+
+		bool operator>(const Word& other) const 
+		{
+			return WordHelper::tolower(word) > WordHelper::tolower(other.getword());
+		}
+
+		bool operator<(const Word& other) const 
+		{
+			return WordHelper::tolower(word) < WordHelper::tolower(other.getword());
+		}
+
+		bool operator<=(const Word& other) const 
+		{
+			return WordHelper::tolower(word) <= WordHelper::tolower(other.getword());
+		}
+
+		bool operator>=(const Word& other) const 
+		{
+			return WordHelper::tolower(word) >= WordHelper::tolower(other.getword());
 		}
 
         std::string getinfo () const {
