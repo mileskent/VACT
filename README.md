@@ -1,5 +1,5 @@
-# Vocab Acquisition & Comprehension Tool (VACT) - CIS 278
-
+# Vocab Acquisition & Comprehension Tool (VACT)
+A CIS 278 Project
 ## Installation
 ```
 git clone https://github.com/AlexKCA/VACT.git
