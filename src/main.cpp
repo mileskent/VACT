@@ -8,12 +8,11 @@
 #include "sllist.hpp"
 #include "wordprocessor.hpp"
 #include "wordwrapper.hpp"
+#include "wordhelper.hpp"
 #include "wordcolorizer.hpp"
 
 using namespace std;
 
-#define REDFGPAIR 1
-#define YELLOWFGPAIR 2
 
 WINDOW * text_box;
 WINDOW * text_window;
@@ -103,12 +102,12 @@ int main_loop () {
 				if (activeword >= textstrblocks.size()) activeword = textstrblocks.size() - 1;
 				fixori();
 				break;
-			case '\n':
+			case 'e':
                 bool alreadyDefined = false;
 				// check if word is already defined
 				for (int word = 0; word < dictionaryWords.size(); word++)
 				{
-					if (dictionaryWords.at(word).getword() == WordProcessor(textstrblocks.at(activeword)).getword())
+					if (dictionaryWords.at(word).getword() == WordHelper::getword(textstrblocks.at(activeword)))
 					{
                         alreadyDefined = true;
 						break;
@@ -117,7 +116,7 @@ int main_loop () {
 			
 
 				string block = textstrblocks.at(activeword);
-				string word = WordProcessor(block).getword();
+				string word = WordHelper::getword(block);
 				string definition; 
 				int grammar;
 				
@@ -236,7 +235,7 @@ int choose_text () {
 			clear();
 
 			if ( !vector_contains(fileoptions, bookname) ) {
-                if (WordProcessor::tolower(bookname) == "quit") {
+                if (WordHelper::tolower(bookname) == "quit") {
                     noecho(); 
                     refresh();
                     endwin();
@@ -366,7 +365,7 @@ int refresh_tt (void)
 	wrefresh (tt_box); 
 
 	string s, tt_word, e;
-	WordProcessor (textstrblocks.at(activeword)).process(s, tt_word, e); 
+    WordHelper::splitblock(textstrblocks.at(activeword), s, tt_word, e); 
 	
 	tt_word = "Selected: \"" + tt_word + "\"";
 	wmove (tt_window, 0, 1);
@@ -377,7 +376,7 @@ int refresh_tt (void)
 	int tindex;
 	for (int word = 0; word < dictionaryWords.size(); word++)
 	{
-		if (dictionaryWords.at(word).getword() == WordProcessor(textstrblocks.at(activeword)).getword())
+		if (dictionaryWords.at(word).getword() == WordHelper::getword(textstrblocks.at(activeword)))
 		{
 			defined = 1;
 			tindex = word;
@@ -397,7 +396,7 @@ int refresh_tt (void)
 		wprintw (tt_window, ("Grammatical Use: " + temp.getgrammar() + "\n").c_str());
 		wprintw (tt_window, ("Familiarity: " + temp.getfamiliarity() + "\n").c_str());
 	}
-	wprintw (tt_window, "\n <Enter> to modify.");
+	wprintw (tt_window, "\n e to modify.");
 	
 	wrefresh (tt_window);
 	
@@ -432,45 +431,18 @@ int print_words (void)
 {
 
 // PRINTING
-	// We have to print word by word
-	wmove (text_window, 0, 0); wrefresh (text_window);
+	wmove (text_window, 0, 0); wrefresh (text_window); // go to top
+
 	for (int i = first_word; i < first_word + WORD_BUFFER_SIZE; i++)
 	{
 		if (i > textstrblocks.size() - 1) break;
 
-		string block = textstrblocks.at(i);
-		string word, start, end;
-		WordProcessor(block).process(start, word, end);
+		string block, word, start, end;
+		block = textstrblocks.at(i);
+        WordHelper::splitblock(block, start, word, end);
 
     // COLORIZER
-		wprintw (text_window, start.c_str());   // print nonalphanum start
-
-		if (!isdefinedword(WordProcessor::tolower(word))) // to lower bc we want "Snake" and "snake" and "SNAKE" to have the same def
-		{
-			wattron (text_window, A_UNDERLINE);
-		}
-
-		// differentiate word if active word
-		if (i == activeword)
-		{
-            wattron(text_window, COLOR_PAIR(REDFGPAIR));
-			wattron(text_window, A_BOLD | A_BLINK | A_ITALIC);
-			wprintw (text_window, word.c_str());
-			wattroff(text_window, A_BOLD | A_BLINK | A_ITALIC);	
-            wattroff(text_window, COLOR_PAIR(REDFGPAIR));
-		}
-		else 
-		{
-			wprintw (text_window, word.c_str());
-		}
-		
-		if (!isdefinedword(WordProcessor::tolower(word)))
-		{
-			wattroff (text_window, A_UNDERLINE);
-		}
-
-		// print nonalphanum end
-		wprintw (text_window, end.c_str());
+        WordColorizer (block, text_window, (i == activeword), (isdefinedword(WordHelper::tolower(word))) ).process();
 
     // WRAPPING
         // if adding the next word will go past COL XXX, then also do a newline
@@ -483,6 +455,7 @@ int print_words (void)
         }
 	}
 
+// DRAW WINDOW
     wattron(text_box, COLOR_PAIR(YELLOWFGPAIR));
 	box (text_box, 0, 0);		// Draw a box border for the window
 	char text_title[] = "Text";
@@ -549,11 +522,6 @@ void dofam (int & familiarity)
 	}
 	familiarity = inpch - 1; 
 }
-
-/*
-void writeentry (Verb v) {
-}
-*/
 
 // write Word to runtime entries and remove dupes if applicable
 void writeentry (Word w)

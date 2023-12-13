@@ -54,7 +54,9 @@ h - left
 j - down
 k - up
 l - right
-<Enter> - Select/Continue
+e - edit
+x - increase buffer size
+z - decrease buffer size
 ```
 
 ## Workflow

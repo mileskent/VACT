@@ -1,17 +1,1 @@
- a base class WordProcessor, and then descendants WordFormatter which will do line wrapping and buffer length and WordColorizer which will do color and italics
-
-How it will work
-
-Base abstract class:
-    Basic is gonna get a block and have do punct inside of it
-
-Wrapper class
-    If there needs to be a newline then wrapper adds a newline
-
-Colorizer class
-    If there needs to be colors then color class does the colors
-
-Optional
-Auto WORD_BUFFER_SIZE
-Add multiple languages
-
+make wordwrapper and colorizer descend from the same class
