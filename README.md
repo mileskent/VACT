@@ -13,17 +13,17 @@ If you are using Windows, [WSL](https://learn.microsoft.com/en-us/windows/wsl/in
 To build this project, you will need g++ and ncurses.h
 
 
-**Debian-based (WSL, Ubuntu, Debian, Linux Mint)**
+**Apt (Debian, Debian-based, WSL, Ubuntu, Linux Mint)**
 ```
 sudo apt install g++ libncurses-dev
 ```
 
-**Arch**
+**Pacman (Arch, Arch-based)**
 ```
 sudo pacman -S ncurses gcc
 ```
 
-**MacOS**
+**Brew (MacOS)**
 ```
 brew install ncurses g++
 ```
