@@ -9,6 +9,10 @@ using namespace std;
 const string filedir = "../res/files/";
 
 
+// Get a Singley Linked List of strings
+// from the given file, of which the 
+// strings are blocks of text seperated
+// by spaces
 SLList<string> getblocks (string file)
 {
 	ifstream ifs (filedir + file, ifstream::in);
@@ -26,6 +30,7 @@ SLList<string> getblocks (string file)
 	return list;
 }
 
+// Get a SLList of the files in the res/files dir
 SLList<string> getdir (string relpath)
 {
 	SLList<string> texts;
@@ -36,6 +41,7 @@ SLList<string> getdir (string relpath)
 	return texts;
 }
 
+// get the texts for the project
 SLList<string> gettexts ()
 {
 	return getdir (filedir);

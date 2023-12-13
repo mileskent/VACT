@@ -64,7 +64,7 @@ int main (void)
 	return 0;
 }
 
-
+// loop that runs for every key input once the main program has begun
 int main_loop () {
     // main loop
 	while ((inpch = wgetch(text_window)) != 'q')
@@ -186,6 +186,7 @@ int main_loop () {
     return 0;
 }
 
+// initializes all the important things before main_loop is called
 int main_init () {
     textstrblocks = getblocks(bookname).tovector(); // initialize the string blocks from the text
 	dictionaryWords = readDictWords().tovector(); // initialize the dictionary from the dictionary file
@@ -205,6 +206,7 @@ int main_init () {
     return 0;
 }
 
+// allows the user to choose which text they would like to read
 int choose_text () {
 	vector<string> fileoptions = gettexts().tovector(); // get the texts from the appropriate directory
 	if (fileoptions.size() > 0)	{
@@ -258,6 +260,7 @@ int choose_text () {
     return 0;
 }
 
+// inits all the ncurses-related things
 int ncurses_init () {
 	initscr();					// Start curses mode
 	cbreak();					// Line Buffering Off
@@ -350,7 +353,8 @@ SLList<Word> readDictWords()
         return list;
 }
 
-// the basic tooltip window
+// the basic info "tooltip" window
+// refreshes all the important stuff, ui, etc
 int refresh_tt (void)
 {
 
@@ -426,6 +430,7 @@ int isdefinedword (string word)
 }
 
 // output all of the words the we want to view into the text window
+// IMPORTANT 
 int print_words (void)
 {
 
@@ -547,6 +552,7 @@ Word getactiveword (string word)
 	return Word();
 }
 
+// deinitialize everything
 int end_deinit() {
     // End exec
 	clear ();

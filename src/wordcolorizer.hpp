@@ -13,11 +13,16 @@ private:
    bool isactiveword;
    bool isdefined;
 public:
-    WordColorizer (std::string wordblock, WINDOW* writingwindow, bool isactiveword, bool isdefined) : WordProcessor (wordblock, writingwindow) {
+// CONSTRUCTOR
+    WordColorizer (std::string wordblock, 
+            WINDOW* writingwindow,
+            bool isactiveword,
+            bool isdefined) : WordProcessor (wordblock, writingwindow) {
         this->isactiveword = isactiveword;
         this->isdefined = isdefined;
     }
-
+// PROCESSING FUNCTION
+    // Does all the colors and effects for a given word
     void process () override {
         std::string word, start, end; 
         WordHelper::splitblock(wordblock, start, word, end);

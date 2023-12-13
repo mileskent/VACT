@@ -1,1 +1,1 @@
-g++ -o ../bin/main main.cpp -lncurses
+g++ -o ../bin/main *.cpp -lncurses

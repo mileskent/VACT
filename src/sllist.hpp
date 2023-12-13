@@ -26,12 +26,14 @@ public:
 
     Node<T>* get_head() { return head; }
 
+    // delete the node prevNode->next
     void delete_node(Node<T>* prevNode) {
-        Node<T>* todelete = prevNode->next;
-        prevNode->next = todelete->next;
-        delete todelete;
+        Node<T>* nodetodelete = prevNode->next;
+        prevNode->next = nodetodelete->next;
+        delete nodetodelete;
     }
 
+    // add node to end of list
     void push_back_node(T data) {
         Node<T>* topushback = new Node<T>;
         topushback->data = data;
@@ -46,6 +48,7 @@ public:
         }
     }
 
+    // add node in order
     void orderedinsert(T data) {
         Node<T>* nodetoinsert = new Node<T>;
         nodetoinsert->data = data;
@@ -83,7 +86,7 @@ public:
         }
     }
 
-
+    // print the list
     static void showlist(Node<T>* head) {
         if (head == nullptr) {
             std::cout << "Empty Node" << std::endl;
@@ -93,6 +96,7 @@ public:
         }
     }
 
+    // convert list to vector
     std::vector<T> tovector() {
         std::vector<T> toreturn;
         Node<T>* current = head;

@@ -54,7 +54,6 @@ public:
     
     // tolower an entire std::string
     // Note: Works with stuff like german esset as the letter just stays the same
-    // helper, not dependent on member variables
     static std::string tolower (std::string str) {
         for (int i = 0; i < str.length(); i++)
         {
@@ -67,7 +66,6 @@ public:
     }
 
     // Is the character one we want in our Word's word?
-    // helper, not dependent on member variables
     static int iswordchar (char ch)
     {
         return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '-' || (ch >= '0' && ch <= '9');

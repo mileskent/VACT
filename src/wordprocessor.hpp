@@ -1,5 +1,6 @@
 #ifndef WORDPROCESSOR_HPP
 #define WORDPROCESSOR_HPP
+// ABSTRACT CLASS FOR WORD PROCESSING CLASSES
 #include <ncurses.h>
 #include <string>
 
