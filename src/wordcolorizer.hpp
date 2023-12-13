@@ -40,7 +40,7 @@ public:
 			wprintw (writingwindow, word.c_str());
 		}
 		
-		if (!isdefined) wattron (writingwindow, A_UNDERLINE);   
+		if (!isdefined) wattroff (writingwindow, A_UNDERLINE);   
 
 		
 		wprintw (writingwindow, end.c_str());   // print nonalphanum end

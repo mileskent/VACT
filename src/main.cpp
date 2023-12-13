@@ -6,7 +6,7 @@
 #include "filereader.hpp"
 #include "word.hpp"
 #include "sllist.hpp"
-#include "wordprocessor.hpp"
+#include "constants.hpp"
 #include "wordwrapper.hpp"
 #include "wordhelper.hpp"
 #include "wordcolorizer.hpp"
@@ -21,12 +21,10 @@ WINDOW * tt_window;
 string bookname = "";
 char inpch;
 int WORD_BUFFER_SIZE = 500; 
-const double TWPER = 0.7;
 vector<string> textstrblocks;
 vector<Word> dictionaryWords;
 int first_word = 0; 
 int activeword = 0;
-const int jumplen = 10;
 
 int writeDict ();
 int readDictWords ();
@@ -53,6 +51,7 @@ struct Pos
 	int x;
 	int y;
 };
+
 Pos cursor;
 
 int main (void)
@@ -435,7 +434,7 @@ int print_words (void)
 
 	for (int i = first_word; i < first_word + WORD_BUFFER_SIZE; i++)
 	{
-		if (i > textstrblocks.size() - 1) break;
+		if (i > textstrblocks.size() - 1) break; // prevent OOB Error
 
 		string block, word, start, end;
 		block = textstrblocks.at(i);
@@ -445,13 +444,8 @@ int print_words (void)
         WordColorizer (block, text_window, (i == activeword), (isdefinedword(WordHelper::tolower(word))) ).process();
 
     // WRAPPING
-        // if adding the next word will go past COL XXX, then also do a newline
-        // i.e. if the length of space + the next block + the current x is >= COL XXX then newline
-	    // text_window = newwin((int)(LINES) - 2, (int)(COLS * TWPER) - 2, 1, 1);	
-		getyx (text_window, cursor.y, cursor.x);
-        if ( (i < textstrblocks.size() - 1) && // prevents OOB Error
-                (textstrblocks.at(i + 1).length() + cursor.x) >= ((int)(COLS * TWPER) - 2) ) { 
-            wprintw (text_window, "\n");
+        if ( i < textstrblocks.size() - 1 ) { // prevents OOB Error
+            WordWrapper (block, textstrblocks.at(i + 1), text_window).process();
         }
 	}
 
